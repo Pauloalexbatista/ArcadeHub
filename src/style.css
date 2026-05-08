@@ -821,7 +821,9 @@ button:hover { opacity: 0.8; }
         opacity: 1;
         transform: none;
     }
-    #hub-btn-open-workshop {
+    #hub-btn-open-workshop,
+    #btn-goto-workshop,
+    #modal-btn-exit {
         display: none !important;
     }
 }
