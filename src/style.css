@@ -981,3 +981,33 @@ button:hover { opacity: 0.8; }
     aspect-ratio: 440 / 840 !important;
 }
 
+/* ESTILO RETRO - CONVERTENDO BORDAS NEON EM MADEIRA CLÁSSICA E LATÃO */
+body.retro-theme {
+    --accent: #d4af37;
+    --danger: #b71c1c;
+    --grid-color: rgba(62, 39, 35, 0.04);
+    --grid-major: rgba(139, 90, 43, 0.08);
+}
+body.retro-theme #in-game-header {
+    border-color: #3e2723 !important;
+    background: #dbb18a !important;
+    color: #3e2723 !important;
+}
+body.retro-theme #canvas-wrapper {
+    border-color: #3e2723 !important;
+    background: #f4d5b7 !important;
+}
+body.retro-theme #btn-settings-toggle {
+    background: #3e2723 !important;
+    border: 1px solid #d4af37 !important;
+    color: #d4af37 !important;
+    box-shadow: 0 0 5px rgba(212, 175, 55, 0.3) !important;
+}
+body.retro-theme #btn-settings-toggle:hover {
+    background: #5d4037 !important;
+    box-shadow: 0 0 12px #d4af37 !important;
+}
+body.retro-theme #ball-count {
+    color: #3e2723 !important;
+}
+

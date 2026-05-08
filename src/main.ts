@@ -792,9 +792,15 @@ const drawEditor = () => {
     drawBackground();
     
     // Visualização dos Botões de Flipper (Mobile/Editor)
-    ctx.shadowBlur = 15; ctx.shadowColor = '#ff00ff';
-    ctx.fillStyle = 'rgba(255, 0, 255, 0.15)';
-    ctx.strokeStyle = 'rgba(255, 0, 255, 0.4)';
+    if (activeTheme === 'retro') {
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = 'rgba(139, 90, 43, 0.15)';
+        ctx.strokeStyle = 'rgba(139, 90, 43, 0.4)';
+    } else {
+        ctx.shadowBlur = 15; ctx.shadowColor = '#ff00ff';
+        ctx.fillStyle = 'rgba(255, 0, 255, 0.15)';
+        ctx.strokeStyle = 'rgba(255, 0, 255, 0.4)';
+    }
     ctx.lineWidth = 2;
     // Botão Esq
     ctx.beginPath(); ctx.arc(65, PLAY_ZONE_BOTTOM + 60, 40, 0, Math.PI*2); ctx.fill(); ctx.stroke();
@@ -802,12 +808,21 @@ const drawEditor = () => {
     ctx.beginPath(); ctx.arc(WIDTH - 65, PLAY_ZONE_BOTTOM + 60, 40, 0, Math.PI*2); ctx.fill(); ctx.stroke();
     
     // Espaço para Mensagens (Caixa central)
-    ctx.strokeStyle = 'rgba(0, 255, 255, 0.2)';
+    if (activeTheme === 'retro') {
+        ctx.strokeStyle = 'rgba(62, 39, 35, 0.25)';
+    } else {
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.2)';
+    }
     ctx.setLineDash([5, 5]);
     ctx.strokeRect(WIDTH / 2 - 80, PLAY_ZONE_BOTTOM + 25, 160, 70);
     
     ctx.shadowBlur = 0; ctx.setLineDash([]);
-    ctx.fillStyle = 'rgba(0, 255, 255, 0.3)'; ctx.font = 'bold 10px Orbitron'; ctx.textAlign = 'center';
+    if (activeTheme === 'retro') {
+        ctx.fillStyle = '#3e2723';
+    } else {
+        ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+    }
+    ctx.font = 'bold 10px Orbitron'; ctx.textAlign = 'center';
     ctx.fillText('MENSAGENS DO SISTEMA', WIDTH / 2, PLAY_ZONE_BOTTOM + 20);
     ctx.fillText('BOTÃO ESQ', 65, PLAY_ZONE_BOTTOM + 112);
     ctx.fillText('BOTÃO DIR', WIDTH - 65, PLAY_ZONE_BOTTOM + 112);
@@ -1110,17 +1125,30 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         }
     } else if (c.type === 'target' || c.type === 'target-p') {
         const isPerm = c.type === 'target-p';
-        ctx.fillStyle = isPerm ? '#ffeb3b' : '#ff00ff'; ctx.strokeStyle = isPerm ? '#e91e63' : '#00ffff'; ctx.lineWidth = 2;
-        ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
-        ctx.beginPath(); ctx.roundRect(-15, -15, 30, 30, 6); ctx.fill(); ctx.stroke();
+        if (activeTheme === 'retro') {
+            // Alvo mecânico de plástico sólido (branco com centro vermelho ou amarelo)
+            ctx.fillStyle = isPerm ? '#ffca28' : '#ffffff'; ctx.strokeStyle = '#b71c1c'; ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.roundRect(-15, -15, 30, 30, 6); ctx.fill(); ctx.stroke();
+            
+            // Ponto central de impacto (Bullseye)
+            ctx.fillStyle = '#b71c1c'; ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI*2); ctx.fill();
+        } else {
+            ctx.fillStyle = isPerm ? '#ffeb3b' : '#ff00ff'; ctx.strokeStyle = isPerm ? '#e91e63' : '#00ffff'; ctx.lineWidth = 2;
+            ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
+            ctx.beginPath(); ctx.roundRect(-15, -15, 30, 30, 6); ctx.fill(); ctx.stroke();
+        }
         if (isPlaying && extraData.label !== undefined) {
-            ctx.fillStyle = isPerm ? '#110520' : '#fff'; ctx.font = 'bold 16px Orbitron'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillStyle = activeTheme === 'retro' ? '#ffffff' : (isPerm ? '#110520' : '#fff'); ctx.font = 'bold 16px Orbitron'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.shadowBlur = 0; ctx.fillText(extraData.label.toString(), 0, 0);
         }
     } else if (c.type === 'spinner') {
         // Placa rotativa 2D (Mesmo tamanho 60x16 da roleta, rodando sobre si mesma)
-        ctx.fillStyle = extraData.color || '#ffeb3b'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
-        ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
+        if (activeTheme === 'retro') {
+            ctx.fillStyle = '#cfd8dc'; ctx.strokeStyle = '#37474f'; ctx.lineWidth = 2.5; // Placa de aço sólida
+        } else {
+            ctx.fillStyle = extraData.color || '#ffeb3b'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+            ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
+        }
         ctx.beginPath(); ctx.roundRect(-30, -8, 60, 16, 3); ctx.fill(); ctx.stroke();
         
         // Ponto central de pivot (Eixo único de rotação no meio)
@@ -1143,8 +1171,12 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         
         ctx.save();
         ctx.scale(1, scaleY);
-        ctx.fillStyle = extraData.color || '#00ff00'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
-        ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
+        if (activeTheme === 'retro') {
+            ctx.fillStyle = '#cfd8dc'; ctx.strokeStyle = '#37474f'; ctx.lineWidth = 2.5; // Chapa de metal
+        } else {
+            ctx.fillStyle = extraData.color || '#00ff00'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
+            ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
+        }
         ctx.beginPath(); ctx.roundRect(-30, -8, 60, 16, 3); ctx.fill(); ctx.stroke();
         ctx.restore();
     } else if (c.type.startsWith('light-g3-') || c.type.startsWith('light-g4-')) {
@@ -1158,10 +1190,10 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         } else if (c.type === 'light-g4-square') {
             offsets = [{x: -14, y: -14}, {x: 14, y: -14}, {x: -14, y: 14}, {x: 14, y: 14}];
         }
-
+ 
         const colorsIdx = isPlaying && extraData.colors ? extraData.colors : [0, 1, 2, 3];
         const isSpinning = isPlaying && extraData.isSpinning;
-
+ 
         offsets.forEach((offset, idx) => {
             const colIdx = colorsIdx[idx % colorsIdx.length];
             const color = NEON_COLORS[colIdx];
@@ -1170,122 +1202,199 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             ctx.translate(offset.x, offset.y);
             
             const isOn = isPlaying ? !isSpinning : true;
-            ctx.fillStyle = isOn ? color + 'e6' : color + '44';
-            ctx.strokeStyle = isOn ? '#fff' : color;
-            ctx.lineWidth = 2;
-            ctx.shadowBlur = isOn ? 15 : 0;
-            ctx.shadowColor = color;
             
-            ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-            
-            // Brilho interno
-            ctx.fillStyle = isOn ? '#fff' : color + '33';
-            ctx.shadowBlur = 0;
-            ctx.beginPath(); ctx.arc(0, 0, 2.5, 0, Math.PI*2); ctx.fill();
+            if (activeTheme === 'retro') {
+                if (isOn) {
+                    ctx.fillStyle = '#ffca28'; ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 2;
+                    ctx.shadowBlur = 12; ctx.shadowColor = '#ffca28';
+                } else {
+                    ctx.fillStyle = '#e0e0e0'; ctx.strokeStyle = '#90a4ae'; ctx.lineWidth = 1.5;
+                    ctx.shadowBlur = 0;
+                }
+                ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = isOn ? '#fff' : '#b0bec5';
+                ctx.shadowBlur = 0;
+                ctx.beginPath(); ctx.arc(0, 0, 2.5, 0, Math.PI*2); ctx.fill();
+            } else {
+                ctx.fillStyle = isOn ? color + 'e6' : color + '44';
+                ctx.strokeStyle = isOn ? '#fff' : color;
+                ctx.lineWidth = 2;
+                ctx.shadowBlur = isOn ? 15 : 0;
+                ctx.shadowColor = color;
+                ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+                ctx.fillStyle = isOn ? '#fff' : color + '33';
+                ctx.shadowBlur = 0;
+                ctx.beginPath(); ctx.arc(0, 0, 2.5, 0, Math.PI*2); ctx.fill();
+            }
             ctx.restore();
         });
     } else if (c.type.startsWith('light')) {
-        const isGreen = c.type === 'light' || c.type === 'light-g';
-        const color = c.type === 'light-r' ? '#ff0055' : (c.type === 'light-b' ? '#00ffff' : (c.type === 'light-y' ? '#ffeb3b' : '#00ff00'));
-        const dimColor = c.type === 'light-r' ? 'rgba(255, 0, 85, 0.2)' : (c.type === 'light-b' ? 'rgba(0, 255, 255, 0.2)' : (c.type === 'light-y' ? 'rgba(255, 235, 59, 0.2)' : 'rgba(0, 50, 0, 0.4)'));
-        const onColor = c.type === 'light-r' ? 'rgba(255, 0, 85, 0.9)' : (c.type === 'light-b' ? 'rgba(0, 255, 255, 0.9)' : (c.type === 'light-y' ? 'rgba(255, 235, 59, 0.9)' : 'rgba(0, 255, 0, 0.9)'));
-        const strokeColor = c.type === 'light-r' ? '#ff0055' : (c.type === 'light-b' ? '#00ffff' : (c.type === 'light-y' ? '#ffeb3b' : '#00a000'));
-        
         const isOn = isPlaying ? extraData.active : false;
-        ctx.fillStyle = isOn ? onColor : dimColor;
-        ctx.strokeStyle = isOn ? '#fff' : strokeColor;
-        ctx.lineWidth = 2;
-        ctx.shadowBlur = isOn ? 20 : 0;
-        ctx.shadowColor = color;
-        ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-        // Brilho interno
-        ctx.fillStyle = isOn ? '#fff' : (isGreen ? 'rgba(0, 255, 0, 0.2)' : color + '33');
-        ctx.shadowBlur = 0;
-        ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI*2); ctx.fill();
+        
+        if (activeTheme === 'retro') {
+            if (isOn) {
+                // Lâmpada incandescente acesa (Brilho âmbar quente)
+                ctx.fillStyle = '#ffca28'; ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 2.5;
+                ctx.shadowBlur = 15; ctx.shadowColor = '#ffca28';
+            } else {
+                // Lâmpada apagada (Cúpula neutra sem brilho!)
+                ctx.fillStyle = '#e0e0e0'; ctx.strokeStyle = '#90a4ae'; ctx.lineWidth = 2;
+                ctx.shadowBlur = 0;
+            }
+            ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            
+            // Filamento interno da lâmpada
+            ctx.fillStyle = isOn ? '#fff' : '#b0bec5'; ctx.shadowBlur = 0;
+            ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI*2); ctx.fill();
+        } else {
+            const isGreen = c.type === 'light' || c.type === 'light-g';
+            const color = c.type === 'light-r' ? '#ff0055' : (c.type === 'light-b' ? '#00ffff' : (c.type === 'light-y' ? '#ffeb3b' : '#00ff00'));
+            const dimColor = c.type === 'light-r' ? 'rgba(255, 0, 85, 0.2)' : (c.type === 'light-b' ? 'rgba(0, 255, 255, 0.2)' : (c.type === 'light-y' ? 'rgba(255, 235, 59, 0.2)' : 'rgba(0, 50, 0, 0.4)'));
+            const onColor = c.type === 'light-r' ? 'rgba(255, 0, 85, 0.9)' : (c.type === 'light-b' ? 'rgba(0, 255, 255, 0.9)' : (c.type === 'light-y' ? 'rgba(255, 235, 59, 0.9)' : 'rgba(0, 255, 0, 0.9)'));
+            const strokeColor = c.type === 'light-r' ? '#ff0055' : (c.type === 'light-b' ? '#00ffff' : (c.type === 'light-y' ? '#ffeb3b' : '#00a000'));
+            
+            ctx.fillStyle = isOn ? onColor : dimColor;
+            ctx.strokeStyle = isOn ? '#fff' : strokeColor;
+            ctx.lineWidth = 2;
+            ctx.shadowBlur = isOn ? 20 : 0;
+            ctx.shadowColor = color;
+            ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            
+            ctx.fillStyle = isOn ? '#fff' : (isGreen ? 'rgba(0, 255, 0, 0.2)' : color + '33');
+            ctx.shadowBlur = 0;
+            ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI*2); ctx.fill();
+        }
     } else if (c.type === 'spawn') {
-        ctx.fillStyle = '#4caf50'; ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI*2); ctx.fill();
+        ctx.fillStyle = activeTheme === 'retro' ? '#8bc34a' : '#4caf50'; ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = '#fff'; ctx.font = "bold 14px Arial"; ctx.textAlign = 'center'; ctx.fillText("S", 0, 5);
     } else if (c.type === 'plunger') {
-        ctx.fillStyle = '#ff00ff'; ctx.fillRect(-15, -10, 30, 20);
-        ctx.strokeStyle = '#fff'; ctx.strokeRect(-15, -30, 30, 40);
+        if (activeTheme === 'retro') {
+            ctx.fillStyle = '#8b5a2b'; ctx.fillRect(-15, -10, 30, 20); // Gatilho de madeira
+            ctx.strokeStyle = '#757575'; ctx.strokeRect(-15, -30, 30, 40);
+        } else {
+            ctx.fillStyle = '#ff00ff'; ctx.fillRect(-15, -10, 30, 20);
+            ctx.strokeStyle = '#fff'; ctx.strokeRect(-15, -30, 30, 40);
+        }
     } else if (c.type === 'hole') {
-        ctx.fillStyle = '#110520'; ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
-        ctx.strokeStyle = extraData.active ? '#00ff00' : '#ff00ff'; ctx.lineWidth = 3; ctx.stroke();
+        if (activeTheme === 'retro') {
+            ctx.fillStyle = '#1c0d02'; ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 3; ctx.stroke();
+        } else {
+            ctx.fillStyle = '#110520'; ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = extraData.active ? '#00ff00' : '#ff00ff'; ctx.lineWidth = 3; ctx.stroke();
+        }
     } else if (c.type.startsWith('hole-')) {
-        const color = c.type === 'hole-g' ? '#00ff00' : (c.type === 'hole-r' ? '#ff0055' : (c.type === 'hole-b' ? '#00ffff' : '#ffeb3b'));
+        const isGateOpen = isPlaying ? extraData.active : false;
         
-        // Desenhar a caixa U protetora - Quadrado Perfeito Simétrico (52x52 de lado a lado)
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 4;
-        ctx.shadowBlur = 10;
-        ctx.shadowColor = color;
-        ctx.lineCap = 'round';
-        ctx.beginPath();
-        ctx.moveTo(-26, 26);
-        ctx.lineTo(-26, -26);
-        ctx.lineTo(26, -26);
-        ctx.lineTo(26, 26);
-        ctx.stroke();
-        
-        // Desenhar o portão/porta
-        const isGateOpen = isPlaying ? extraData.active : false; // no physics loop, active representa se a porta está aberta ou se o buraco está ativo/aberto
-        if (!isGateOpen) {
-            // Desenhar laser de segurança fechado (linha brilhante espessa)
-            ctx.strokeStyle = color;
-            ctx.lineWidth = 6;
-            ctx.shadowBlur = 15;
+        if (activeTheme === 'retro') {
+            // Desenhar caixa U protetora em madeira sólida clássica (Nogueira escura)
+            ctx.strokeStyle = '#3e2723';
+            ctx.lineWidth = 5;
+            ctx.shadowBlur = 0;
+            ctx.lineCap = 'round';
             ctx.beginPath();
             ctx.moveTo(-26, 26);
+            ctx.lineTo(-26, -26);
+            ctx.lineTo(26, -26);
             ctx.lineTo(26, 26);
             ctx.stroke();
             
-            // Padrão de laser interno
-            ctx.strokeStyle = '#fff';
+            // Porta/Portão de ripa de madeira fechado ou aberto
+            if (!isGateOpen) {
+                ctx.strokeStyle = '#8b5a2b'; // Ripa de madeira de carvalho fecha o portão
+                ctx.lineWidth = 6;
+                ctx.beginPath();
+                ctx.moveTo(-26, 26);
+                ctx.lineTo(26, 26);
+                ctx.stroke();
+            }
+            
+            // Buraco interior centrado em (0, 0) - Tom escuro de buraco de madeira real
+            ctx.fillStyle = '#1c0d02';
+            ctx.beginPath();
+            ctx.arc(0, 0, 14, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.strokeStyle = '#3e2723';
             ctx.lineWidth = 2;
             ctx.beginPath();
-            ctx.moveTo(-26, 26);
-            ctx.lineTo(26, 26);
+            ctx.arc(0, 0, 14, 0, Math.PI * 2);
             ctx.stroke();
         } else {
-            // Desenhar laser aberto ou desativado (linha pontilhada muito ténue)
-            ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-            ctx.lineWidth = 2;
-            ctx.setLineDash([4, 4]);
+            const color = c.type === 'hole-g' ? '#00ff00' : (c.type === 'hole-r' ? '#ff0055' : (c.type === 'hole-b' ? '#00ffff' : '#ffeb3b'));
+            
+            // Desenhar a caixa U protetora - Quadrado Perfeito Simétrico (52x52 de lado a lado)
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 4;
+            ctx.shadowBlur = 10;
+            ctx.shadowColor = color;
+            ctx.lineCap = 'round';
             ctx.beginPath();
             ctx.moveTo(-26, 26);
+            ctx.lineTo(-26, -26);
+            ctx.lineTo(26, -26);
             ctx.lineTo(26, 26);
             ctx.stroke();
-            ctx.setLineDash([]);
+            
+            // Desenhar o portão/porta
+            if (!isGateOpen) {
+                // Desenhar laser de segurança fechado (linha brilhante espessa)
+                ctx.strokeStyle = color;
+                ctx.lineWidth = 6;
+                ctx.shadowBlur = 15;
+                ctx.beginPath();
+                ctx.moveTo(-26, 26);
+                ctx.lineTo(26, 26);
+                ctx.stroke();
+                
+                // Padrão de laser interno
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(-26, 26);
+                ctx.lineTo(26, 26);
+                ctx.stroke();
+            } else {
+                // Desenhar laser aberto ou desativado (linha pontilhada muito ténue)
+                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
+                ctx.lineWidth = 2;
+                ctx.setLineDash([4, 4]);
+                ctx.beginPath();
+                ctx.moveTo(-26, 26);
+                ctx.lineTo(26, 26);
+                ctx.stroke();
+                ctx.setLineDash([]);
+            }
+            
+            // Desenhar o buraco interior centrado em (0, 0)
+            ctx.fillStyle = '#110520';
+            ctx.shadowBlur = 0;
+            ctx.beginPath();
+            ctx.arc(0, 0, 14, 0, Math.PI * 2);
+            ctx.fill();
+            
+            ctx.strokeStyle = color;
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.arc(0, 0, 14, 0, Math.PI * 2);
+            ctx.stroke();
+            
+            // Desenhar centro brilhante do buraco centrado em (0, 0)
+            ctx.fillStyle = isGateOpen ? color : 'rgba(255,255,255,0.1)';
+            ctx.beginPath();
+            ctx.arc(0, 0, 4, 0, Math.PI * 2);
+            ctx.fill();
         }
-        
-        // Desenhar o buraco interior centrado em (0, 0)
-        ctx.fillStyle = '#110520';
-        ctx.shadowBlur = 0;
-        ctx.beginPath();
-        ctx.arc(0, 0, 14, 0, Math.PI * 2);
-        ctx.fill();
-        
-        ctx.strokeStyle = color;
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.arc(0, 0, 14, 0, Math.PI * 2);
-        ctx.stroke();
-        
-        // Desenhar centro brilhante do buraco centrado em (0, 0)
-        ctx.fillStyle = isGateOpen ? color : 'rgba(255,255,255,0.1)';
-        ctx.beginPath();
-        ctx.arc(0, 0, 4, 0, Math.PI * 2);
-        ctx.fill();
-
+ 
         // Desenhar indicador visual se o buraco for um portal de mesa associado
         if (c.portalTable) {
             ctx.save();
-            ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 1.5; ctx.setLineDash([2, 2]);
-            ctx.shadowBlur = 8; ctx.shadowColor = '#00ffff';
+            ctx.strokeStyle = activeTheme === 'retro' ? '#d4af37' : '#00ffff'; ctx.lineWidth = 1.5; ctx.setLineDash([2, 2]);
+            ctx.shadowBlur = activeTheme === 'retro' ? 0 : 8; ctx.shadowColor = '#00ffff';
             ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.stroke();
             ctx.setLineDash([]); ctx.shadowBlur = 0;
             
-            ctx.fillStyle = '#00ffff'; ctx.font = 'bold 9px Orbitron'; ctx.textAlign = 'center';
+            ctx.fillStyle = activeTheme === 'retro' ? '#3e2723' : '#00ffff'; ctx.font = 'bold 9px Orbitron'; ctx.textAlign = 'center';
             ctx.fillText("PORTAL", 0, -16);
             ctx.restore();
         }
@@ -2093,12 +2202,21 @@ const runGameSimulation = (isWarping = false) => {
         drawBackground();
         
         // Desenhar botões (feedback visual no jogo)
-        ctx.shadowBlur = 10; ctx.shadowColor = '#ff00ff';
-        ctx.fillStyle = keysPressed.has('a') || keysPressed.has('arrowleft') ? 'rgba(255,0,255,0.4)' : 'rgba(255,0,255,0.1)';
-        ctx.beginPath(); ctx.arc(65, PLAY_ZONE_BOTTOM + 60, 40, 0, Math.PI*2); ctx.fill();
-        
-        ctx.fillStyle = keysPressed.has('d') || keysPressed.has('arrowright') ? 'rgba(255,0,255,0.4)' : 'rgba(255,0,255,0.1)';
-        ctx.beginPath(); ctx.arc(WIDTH - 65, PLAY_ZONE_BOTTOM + 60, 40, 0, Math.PI*2); ctx.fill();
+        if (activeTheme === 'retro') {
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = keysPressed.has('a') || keysPressed.has('arrowleft') ? 'rgba(139, 90, 43, 0.4)' : 'rgba(139, 90, 43, 0.15)';
+            ctx.beginPath(); ctx.arc(65, PLAY_ZONE_BOTTOM + 60, 40, 0, Math.PI*2); ctx.fill();
+            
+            ctx.fillStyle = keysPressed.has('d') || keysPressed.has('arrowright') ? 'rgba(139, 90, 43, 0.4)' : 'rgba(139, 90, 43, 0.15)';
+            ctx.beginPath(); ctx.arc(WIDTH - 65, PLAY_ZONE_BOTTOM + 60, 40, 0, Math.PI*2); ctx.fill();
+        } else {
+            ctx.shadowBlur = 10; ctx.shadowColor = '#ff00ff';
+            ctx.fillStyle = keysPressed.has('a') || keysPressed.has('arrowleft') ? 'rgba(255,0,255,0.4)' : 'rgba(255,0,255,0.1)';
+            ctx.beginPath(); ctx.arc(65, PLAY_ZONE_BOTTOM + 60, 40, 0, Math.PI*2); ctx.fill();
+            
+            ctx.fillStyle = keysPressed.has('d') || keysPressed.has('arrowright') ? 'rgba(255,0,255,0.4)' : 'rgba(255,0,255,0.1)';
+            ctx.beginPath(); ctx.arc(WIDTH - 65, PLAY_ZONE_BOTTOM + 60, 40, 0, Math.PI*2); ctx.fill();
+        }
 
         const now = Date.now();
         if (displayMessage && now < displayMessageTimer) {
@@ -2750,6 +2868,7 @@ document.getElementById('btn-sound-toggle')?.addEventListener('click', () => {
 
 document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
     activeTheme = activeTheme === 'neon' ? 'retro' : 'neon';
+    document.body.classList.toggle('retro-theme', activeTheme === 'retro');
     const btn = document.getElementById('btn-theme-toggle');
     if (btn) {
         btn.innerText = activeTheme === 'neon' ? "💎 NÉON" : "🪵 CLÁSSICO";
