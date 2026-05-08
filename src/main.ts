@@ -1272,8 +1272,7 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
                     ctx.fillStyle = isRedGroup ? '#ff1744' : (isBlueGroup ? '#29b6f6' : (isGreenGroup ? '#66bb6a' : '#ffca28'));
                     ctx.strokeStyle = isRedGroup ? '#b71c1c' : (isBlueGroup ? '#0288d1' : (isGreenGroup ? '#2e7d32' : '#f57f17'));
                     ctx.lineWidth = 2;
-                    ctx.shadowBlur = 10;
-                    ctx.shadowColor = ctx.fillStyle;
+                    ctx.shadowBlur = 0; // Sem brilho de neon no fundo de madeira!
                 } else {
                     ctx.fillStyle = isRedGroup ? '#ff8a80' : (isBlueGroup ? '#b3e5fc' : (isGreenGroup ? '#c8e6c9' : '#fff9c4'));
                     ctx.strokeStyle = isRedGroup ? '#b71c1c' : (isBlueGroup ? '#0288d1' : (isGreenGroup ? '#2e7d32' : '#f57f17'));
@@ -1309,8 +1308,7 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
                 ctx.fillStyle = isRed ? '#ff1744' : (isBlue ? '#29b6f6' : (isYellow ? '#ffca28' : '#66bb6a'));
                 ctx.strokeStyle = isRed ? '#b71c1c' : (isBlue ? '#0288d1' : (isYellow ? '#f57f17' : '#2e7d32'));
                 ctx.lineWidth = 2.5;
-                ctx.shadowBlur = 12;
-                ctx.shadowColor = ctx.fillStyle;
+                ctx.shadowBlur = 0; // Sem brilho de neon no fundo de madeira!
             } else {
                 ctx.fillStyle = isRed ? '#ff8a80' : (isBlue ? '#b3e5fc' : (isYellow ? '#fff9c4' : '#c8e6c9'));
                 ctx.strokeStyle = isRed ? '#b71c1c' : (isBlue ? '#0288d1' : (isYellow ? '#f57f17' : '#2e7d32'));
@@ -2656,8 +2654,20 @@ const runGameSimulation = (isWarping = false) => {
             const pos = marbleBody.getPosition();
             ctx.save();
             ctx.translate(mToPx(pos.x), mToPx(pos.y));
-            ctx.fillStyle = '#fff'; ctx.shadowBlur = 10; ctx.shadowColor = '#00ffff';
-            ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill();
+            if (activeTheme === 'retro') {
+                // Bola de aço cromado clássica com reflexo 3D realista sem brilho néon
+                ctx.shadowBlur = 0;
+                const grad = ctx.createRadialGradient(-3, -3, 2, 0, 0, 13);
+                grad.addColorStop(0, '#ffffff'); // Reflexo brilhante de luz
+                grad.addColorStop(0.3, '#cfd8dc');
+                grad.addColorStop(0.8, '#546e7a'); // Sombra escura
+                grad.addColorStop(1, '#263238');
+                ctx.fillStyle = grad;
+                ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill();
+            } else {
+                ctx.fillStyle = '#fff'; ctx.shadowBlur = 10; ctx.shadowColor = '#00ffff';
+                ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill();
+            }
             ctx.restore();
         }
 
