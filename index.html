@@ -262,16 +262,23 @@
         <main id="editor-container">
             <div id="table-wrapper">
                 <div id="in-game-header">
-                    <div id="header-controls">
-                        <button id="btn-sound-toggle" class="header-btn" title="Ligar/Desligar Som">🔊 SOM</button>
-                        <button id="btn-nudge" class="header-btn" title="Abanar/Sacudir a mesa se a bola ficar presa (Tecla N)">📳 ABANAR</button>
-                        <button id="btn-fullscreen" class="header-btn" title="Ecrã Inteiro">📱 ECRÃ</button>
-                        <button id="btn-reset-ball" class="header-btn" title="Sair do Jogo e ir para o Menu (ESC)">🚪 SAIR</button>
-                        <button id="btn-goto-workshop" class="header-btn" title="Ir para a Oficina">🛠️ OFICINA</button>
+                    <div id="header-left">
+                        <span id="canvas-score">0</span>
                     </div>
-                    <div id="header-stats">
-                        <span id="canvas-score">SCORE: 0</span>
+                    <div id="header-right">
                         <span id="canvas-balls">BOLAS: 3</span>
+                        <button id="btn-settings-toggle" title="Opções">
+                            <svg class="cog-icon" viewBox="0 0 24 24" width="22" height="22" style="display: block; pointer-events: none;">
+                                <path fill="currentColor" d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.47,5.34 14.86,5.08L14.47,2.42C14.43,2.18 14.22,2 13.97,2H9.97C9.72,2 9.51,2.18 9.47,2.42L9.08,5.08C8.47,5.34 7.9,5.66 7.38,6.05L4.89,5.05C4.67,4.96 4.4,5.05 4.27,5.27L2.27,8.73C2.15,8.95 2.2,9.22 2.39,9.37L4.5,11C4.46,11.33 4.44,11.66 4.44,12C4.44,12.33 4.46,12.66 4.5,12.97L2.39,14.63C2.2,14.78 2.15,15.05 2.27,15.27L4.27,18.73C4.4,18.95 4.67,19.04 4.89,18.95L7.38,17.95C7.9,18.34 8.47,18.66 9.08,18.92L9.08,21.58C9.51,21.82 9.72,22 9.97,22H13.97C14.22,22 14.43,21.82 14.47,21.58L14.86,18.92C15.47,18.66 16.04,18.34 16.56,17.95L19.05,18.95C19.27,19.04 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
+                            </svg>
+                        </button>
+                        <div id="settings-dropdown" class="hidden">
+                            <button id="btn-sound-toggle" class="dropdown-btn">🔊 SOM</button>
+                            <button id="btn-nudge" class="dropdown-btn">📳 ABANAR</button>
+                            <button id="btn-fullscreen" class="dropdown-btn">📱 ECRÃ</button>
+                            <button id="btn-goto-workshop" class="dropdown-btn">🛠️ OFICINA</button>
+                            <button id="btn-reset-ball" class="dropdown-btn">🚪 SAIR</button>
+                        </div>
                     </div>
                 </div>
                 <div id="canvas-wrapper">

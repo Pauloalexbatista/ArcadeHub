@@ -2586,11 +2586,27 @@ document.getElementById('btn-play')?.addEventListener('click', () => {
 document.getElementById('btn-edit')?.addEventListener('click', stopSimulation);
 document.getElementById('btn-clear')?.addEventListener('click', () => { if(confirm("Limpar tudo?")) { components = []; drawEditor(); } });
 
+document.getElementById('btn-settings-toggle')?.addEventListener('click', (e) => {
+    e.stopPropagation();
+    document.getElementById('settings-dropdown')?.classList.toggle('hidden');
+});
+
+document.addEventListener('click', (e) => {
+    const dropdown = document.getElementById('settings-dropdown');
+    const toggle = document.getElementById('btn-settings-toggle');
+    if (dropdown && !dropdown.classList.contains('hidden')) {
+        const target = e.target as HTMLElement;
+        if (!dropdown.contains(target) && target !== toggle) {
+            dropdown.classList.add('hidden');
+        }
+    }
+});
+
 document.getElementById('btn-sound-toggle')?.addEventListener('click', () => {
     isSoundEnabled = !isSoundEnabled;
     const btn = document.getElementById('btn-sound-toggle');
     if (btn) {
-        btn.innerText = isSoundEnabled ? "🔊" : "🔇";
+        btn.innerText = isSoundEnabled ? "🔊 SOM" : "🔇 SOM";
         btn.title = isSoundEnabled ? "Desligar Som" : "Ligar Som";
     }
     showDisplayMessage(isSoundEnabled ? "🔊 SOM ATIVADO" : "🔇 SOM DESATIVADO", "#00ffff", 1000);
@@ -2598,6 +2614,7 @@ document.getElementById('btn-sound-toggle')?.addEventListener('click', () => {
 
 document.getElementById('btn-nudge')?.addEventListener('click', () => {
     nudgeTable();
+    document.getElementById('settings-dropdown')?.classList.add('hidden'); // auto-close
 });
 
 document.getElementById('btn-fullscreen')?.addEventListener('click', () => {
@@ -2610,7 +2627,7 @@ document.getElementById('btn-fullscreen')?.addEventListener('click', () => {
         if (appEl) {
             const isActive = appEl.classList.toggle('ios-fullscreen');
             if (btn) {
-                btn.innerText = isActive ? "📺" : "📱";
+                btn.innerText = isActive ? "📺 ECRÃ" : "📱 ECRÃ";
                 btn.title = isActive ? "Sair de Ecrã Inteiro" : "Ecrã Inteiro";
             }
             window.dispatchEvent(new Event('resize'));
@@ -2623,7 +2640,7 @@ document.getElementById('btn-fullscreen')?.addEventListener('click', () => {
             if (appEl) {
                 const isActive = appEl.classList.toggle('ios-fullscreen');
                 if (btn) {
-                    btn.innerText = isActive ? "📺" : "📱";
+                    btn.innerText = isActive ? "📺 ECRÃ" : "📱 ECRÃ";
                 }
             }
         });
@@ -2636,7 +2653,7 @@ document.addEventListener('fullscreenchange', () => {
     const btn = document.getElementById('btn-fullscreen');
     const appEl = document.getElementById('app');
     if (btn) {
-        btn.innerText = document.fullscreenElement ? "📺" : "📱";
+        btn.innerText = document.fullscreenElement ? "📺 ECRÃ" : "📱 ECRÃ";
         btn.title = document.fullscreenElement ? "Sair de Ecrã Inteiro" : "Ecrã Inteiro";
     }
     if (!document.fullscreenElement) {
