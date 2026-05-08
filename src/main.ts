@@ -330,14 +330,35 @@ const updateBallsDisplay = () => {
 };
 
 const formatScore = (num: number) => {
-    const val = num % 1000000000;
+    const val = num % 10000000;
     return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
 const updateScore = (points: number) => {
-    score = (score + points) % 1000000000;
+    score = (score + points) % 10000000; // Limitado a 7 dígitos (9.999.999) para caber perfeitamente
     const scoreEl = document.getElementById('canvas-score');
-    if (scoreEl) scoreEl.innerText = `SCORE: ${formatScore(score)}`;
+    if (scoreEl) {
+        const scoreStr = score.toString().padStart(7, '0');
+        const previousDigits = Array.from(scoreEl.querySelectorAll('.reel-digit')).map(el => el.textContent);
+        
+        let html = '';
+        for (let i = 0; i < 7; i++) {
+            const digit = scoreStr[i];
+            const hasChanged = previousDigits.length > 0 && previousDigits[i] !== digit;
+            const animClass = hasChanged ? 'spin-reel' : '';
+            html += `<div class="reel-digit ${animClass}">${digit}</div>`;
+            if (i === 0 || i === 3) {
+                html += `<div class="reel-separator">.</div>`;
+            }
+        }
+        scoreEl.innerHTML = html;
+        
+        // Limpar a classe de rotação para permitir nova animação no próximo clique
+        setTimeout(() => {
+            scoreEl.querySelectorAll('.spin-reel').forEach(el => el.classList.remove('spin-reel'));
+        }, 120);
+    }
+    
     const nextThreshold = getNextExtraBallThreshold(extraBallsAwardedCount);
     if (score >= nextThreshold) {
         ballsLeft++;
