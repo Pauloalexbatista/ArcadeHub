@@ -493,6 +493,29 @@ const snapToNearest = (x: number, y: number, ignoreComponent: any = null) => {
             }
         }
 
+        // Se for um bumper triangular, adicionar os 3 vértices físicos como pontos de colagem/conexão perfeitos
+        if (c.type && c.type.startsWith('bumper-t')) {
+            const isLarge = c.type === 'bumper-t-l';
+            const radius = isLarge ? 50 : 30;
+            const w = isLarge ? 43.3 : 26;
+            const h = isLarge ? 25 : 15;
+            
+            const vertices = [
+                { x: c.x, y: c.y - radius },              // Vértice superior
+                { x: c.x + w, y: c.y + h },              // Vértice inferior direito
+                { x: c.x - w, y: c.y + h }               // Vértice inferior esquerdo
+            ];
+            
+            for (let v of vertices) {
+                const distV = Math.sqrt((x - v.x)**2 + (y - v.y)**2);
+                if (distV < minDistance) {
+                    snapX = Math.round(v.x);
+                    snapY = Math.round(v.y);
+                    minDistance = distV;
+                }
+            }
+        }
+
         // 2. Verificar extremidades de paredes p0, p2, p4
         if (c.p0) {
             const distP0 = Math.sqrt((x - c.p0.x)**2 + (y - c.p0.y)**2);
