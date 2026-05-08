@@ -1198,13 +1198,13 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             ctx.beginPath(); ctx.roundRect(-15, -15, 30, 30, 6); ctx.fill(); ctx.stroke();
         }
         if (isPlaying && extraData.label !== undefined) {
-            ctx.fillStyle = activeTheme === 'retro' ? '#ffffff' : (isPerm ? '#110520' : '#fff'); ctx.font = 'bold 16px Orbitron'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+            ctx.fillStyle = activeTheme === 'retro' ? '#000000' : (isPerm ? '#110520' : '#fff'); ctx.font = 'bold 16px Orbitron'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.shadowBlur = 0; ctx.fillText(extraData.label.toString(), 0, 0);
         }
     } else if (c.type === 'spinner') {
         // Placa rotativa 2D (Mesmo tamanho 60x16 da roleta, rodando sobre si mesma)
         if (activeTheme === 'retro') {
-            ctx.fillStyle = '#cfd8dc'; ctx.strokeStyle = '#37474f'; ctx.lineWidth = 2.5; // Placa de aço sólida
+            ctx.fillStyle = '#ffca28'; ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 2.5; // Placa amarela retro com rebordo escuro
         } else {
             ctx.fillStyle = extraData.color || '#ffeb3b'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
             ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
@@ -1232,7 +1232,7 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         ctx.save();
         ctx.scale(1, scaleY);
         if (activeTheme === 'retro') {
-            ctx.fillStyle = '#cfd8dc'; ctx.strokeStyle = '#37474f'; ctx.lineWidth = 2.5; // Chapa de metal
+            ctx.fillStyle = '#b71c1c'; ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 2.5; // Chapa vermelha retro com rebordo escuro
         } else {
             ctx.fillStyle = extraData.color || '#00ff00'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 2;
             ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
