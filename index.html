@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="pt">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <title>Pinball Workshop</title>
+    
+    <!-- Meta tags para rodar como App nativa em Ecrã Inteiro (sem barra do browser) -->
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="mobile-web-app-capable" content="yes">
+    
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="/src/style.css">
+</head>
+<body>
+
+    <!-- 1. Ecrã de Login Matrix (Password Gate) -->
+    <div id="login-screen" class="portal-screen">
+        <canvas id="matrix-canvas"></canvas>
+        <div class="login-card">
+            <div class="login-glitch-logo">ARCADE<span>HUB</span></div>
+            <p class="login-subtitle">INSIRA A PALAVRA-CHAVE PARA ACEDER</p>
+            <div class="login-input-wrapper">
+                <input type="password" id="login-password" placeholder="PASSWORD" maxlength="20">
+                <button id="btn-login-submit">DESBLOQUEAR 🔓</button>
+            </div>
+            <div id="login-error" class="hidden">PALAVRA-CHAVE INCORRETA! 🔐</div>
+        </div>
+    </div>
+
+    <!-- 2. Ecrã Split-Screen (Seletor de Jogos) -->
+    <div id="hub-screen" class="portal-screen hidden">
+        <div class="split-side left-side">
+            <div class="split-bg" style="background-image: radial-gradient(rgba(0, 255, 255, 0.15) 2px, transparent 2px); background-size: 24px 24px;"></div>
+            <div class="split-content">
+                <div class="split-logo">OFICINA<span>PINBALL</span></div>
+                <p class="split-desc">Desenha e joga nas tuas próprias mesas néon com física Planck.</p>
+                <div class="split-actions">
+                    <button id="hub-btn-play-pinball" class="hub-btn">🚀 JOGAR PINBALL</button>
+                    <button id="hub-btn-open-workshop" class="hub-btn">🛠️ OFICINA / EDITOR</button>
+                </div>
+            </div>
+        </div>
+        
+        <div class="split-side right-side" id="hub-btn-play-f1">
+            <div class="split-bg" style="background-image: radial-gradient(rgba(255, 0, 85, 0.15) 2px, transparent 2px); background-size: 24px 24px;"></div>
+            <div class="split-content">
+                <div class="split-logo font-racing">MINI F1<span>RACING</span></div>
+                <p class="split-desc">Acelera no asfalto com velocidade máxima, curvas apertadas e som realista.</p>
+                <div class="pc-only-badge">💻 REQUISITO: COMPUTADOR (TECLADO)</div>
+                <div class="split-actions">
+                    <button class="hub-btn">🏎️ ENTRAR NA CORRIDA</button>
+                </div>
+            </div>
+        </div>
+
+        <div class="split-divider"></div>
+        <button id="hub-btn-logout" class="hub-logout-btn" title="Bloquear Portal">🔒 SAIR</button>
+    </div>
+
+    <div id="app" class="hidden">
+        <aside id="sidebar" class="hidden-mobile">
+            <div class="logo">PINBALL<span>WORKSHOP</span></div>
+            <button id="btn-goto-game" class="btn header-btn" style="width: 100%; justify-content: center; margin-bottom: 15px; font-size: 14px; padding: 10px;">🚀 Voltar ao Jogo</button>
+            
+            <div class="section-title">COMPONENTES</div>
+            <div class="component-categories">
+                <div class="category-block">
+                    <div class="category-header">🧱 ESTRUTURA & BUMPERS</div>
+                    <div class="tools-grid">
+                        <button class="tool active" data-tool="pin" title="Pino (Prego)">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><circle cx="20" cy="20" r="8" fill="#888"/></svg>
+                        </button>
+                        <button class="tool" data-tool="prego" title="Pino Salvador (Prego Temporal)">
+                            <svg width="28" height="28" viewBox="0 0 40 40">
+                                <circle cx="20" cy="20" r="12" fill="none" stroke="#ffa500" stroke-width="2" stroke-dasharray="3,3"/>
+                                <circle cx="20" cy="20" r="5" fill="#ffeb3b" stroke="#fff" stroke-width="1"/>
+                            </svg>
+                        </button>
+                        <button class="tool" data-tool="wall" title="Parede">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="5" y="15" width="30" height="10" fill="#110520" stroke="#ff00ff" stroke-width="2"/></svg>
+                        </button>
+                        <button class="tool" data-tool="wall-b" title="Parede Elástica">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="5" y="15" width="30" height="10" fill="#00ffff" stroke="#fff" stroke-width="2"/></svg>
+                        </button>
+                        <button class="tool" data-tool="bumper-s" title="Bumper Pequeno">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><circle cx="20" cy="20" r="10" fill="#00ffff"/><circle cx="20" cy="20" r="4" fill="#fff"/></svg>
+                        </button>
+                        <button class="tool" data-tool="bumper-l" title="Bumper Grande">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><circle cx="20" cy="20" r="16" fill="#00ffff"/><circle cx="20" cy="20" r="6" fill="#fff"/></svg>
+                        </button>
+                        <button class="tool" data-tool="bumper-t" title="Bumper Triang. Normal">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><polygon points="20,12 30,28 10,28" fill="#00ffff"/><circle cx="20" cy="23" r="2" fill="#fff"/></svg>
+                        </button>
+                        <button class="tool" data-tool="bumper-t-l" title="Bumper Triang. Grande">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><polygon points="20,5 36,32 4,32" fill="#00ffff"/><circle cx="20" cy="23" r="3" fill="#fff"/></svg>
+                        </button>
+                        <button class="tool" data-tool="plunger" title="Mola / Lançador">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="12" y="4" width="16" height="16" fill="#ff00ff"/><rect x="14" y="22" width="12" height="14" fill="transparent" stroke="#fff" stroke-width="2"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="category-block">
+                    <div class="category-header">🎛️ FLIPPERS</div>
+                    <div class="tools-grid">
+                        <button class="tool" data-tool="flipper-l" title="Flipper Esquerdo">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="2" y="15" width="36" height="10" rx="5" fill="#ff00ff"/><circle cx="8" cy="20" r="3" fill="#fff"/></svg>
+                        </button>
+                        <button class="tool" data-tool="flipper-r" title="Flipper Direito">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="2" y="15" width="36" height="10" rx="5" fill="#ff00ff"/><circle cx="32" cy="20" r="3" fill="#fff"/></svg>
+                        </button>
+                        <button class="tool" data-tool="flipper-s-l" title="Mini Flipper Esq.">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="8" y="15" width="24" height="10" rx="5" fill="#ff00ff"/><circle cx="14" cy="20" r="3" fill="#fff"/></svg>
+                        </button>
+                        <button class="tool" data-tool="flipper-s-r" title="Mini Flipper Dir.">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="8" y="15" width="24" height="10" rx="5" fill="#ff00ff"/><circle cx="26" cy="20" r="3" fill="#fff"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="category-block">
+                    <div class="category-header">🎯 ALVOS & BURACOS</div>
+                    <div class="tools-grid">
+                        <button class="tool" data-tool="target" title="Alvo">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="8" y="8" width="24" height="24" fill="#ff00ff" stroke="#00ffff" stroke-width="2"/><circle cx="20" cy="20" r="5" fill="#00ffff"/></svg>
+                        </button>
+                        <button class="tool" data-tool="target-p" title="Alvo Permanente">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="8" y="8" width="24" height="24" fill="#ffeb3b" stroke="#e91e63" stroke-width="2"/><circle cx="20" cy="20" r="5" fill="#e91e63"/></svg>
+                        </button>
+                        <button class="tool" data-tool="hole" title="Buraco Normal">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="#110520" stroke="#ff00ff" stroke-width="3"/><circle cx="20" cy="20" r="4" fill="#00ffff"/></svg>
+                        </button>
+                        <button class="tool" data-tool="spawn" title="Ponto de Início">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><circle cx="20" cy="20" r="14" fill="#4caf50" stroke="#fff" stroke-width="2"/><text x="20" y="25" fill="#fff" font-family="Arial" font-size="14" font-weight="bold" text-anchor="middle">S</text></svg>
+                        </button>
+                        <button class="tool" data-tool="hole-g" title="Buraco Protegido Verde">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="8" y="6" width="24" height="28" rx="2" fill="none" stroke="#00ff00" stroke-width="2"/><line x1="8" y1="30" x2="32" y2="30" stroke="#00ff00" stroke-width="3"/><circle cx="20" cy="18" r="6" fill="#110520" stroke="#00ff00" stroke-width="1.5"/></svg>
+                        </button>
+                        <button class="tool" data-tool="hole-r" title="Buraco Protegido Vermelho">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="8" y="6" width="24" height="28" rx="2" fill="none" stroke="#ff0055" stroke-width="2"/><line x1="8" y1="30" x2="32" y2="30" stroke="#ff0055" stroke-width="3"/><circle cx="20" cy="18" r="6" fill="#110520" stroke="#ff0055" stroke-width="1.5"/></svg>
+                        </button>
+                        <button class="tool" data-tool="hole-b" title="Buraco Protegido Azul">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="8" y="6" width="24" height="28" rx="2" fill="none" stroke="#00ffff" stroke-width="2"/><line x1="8" y1="30" x2="32" y2="30" stroke="#00ffff" stroke-width="3"/><circle cx="20" cy="18" r="6" fill="#110520" stroke="#00ffff" stroke-width="1.5"/></svg>
+                        </button>
+                        <button class="tool" data-tool="hole-y" title="Buraco Protegido Amarelo">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="8" y="6" width="24" height="28" rx="2" fill="none" stroke="#ffeb3b" stroke-width="2"/><line x1="8" y1="30" x2="32" y2="30" stroke="#ffeb3b" stroke-width="3"/><circle cx="20" cy="18" r="6" fill="#110520" stroke="#ffeb3b" stroke-width="1.5"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="category-block">
+                    <div class="category-header">🌀 ROTATIVOS</div>
+                    <div class="tools-grid">
+                        <button class="tool" data-tool="spinner" title="Spinner (Gira 2D)">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="5" y="16" width="30" height="8" rx="2" fill="#ffeb3b" stroke="#fff" stroke-width="2"/></svg>
+                        </button>
+                        <button class="tool" data-tool="roleta" title="Roleta Larga (Gira 3D Vertical)">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><circle cx="6" cy="20" r="4" fill="#888"/><circle cx="34" cy="20" r="4" fill="#888"/><line x1="6" y1="20" x2="34" y2="20" stroke="#444" stroke-width="2"/><rect x="9" y="14" width="22" height="12" rx="1" fill="#00ff00" stroke="#fff" stroke-width="1.5"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="category-block">
+                    <div class="category-header">💡 LUZES NÉON</div>
+                    <div class="tools-grid">
+                        <button class="tool" data-tool="light-g" title="Luz Verde Néon">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><circle cx="20" cy="20" r="10" fill="rgba(0, 255, 0, 0.2)" stroke="#00ff00" stroke-width="2"/><circle cx="20" cy="20" r="4" fill="#00ff00"/></svg>
+                        </button>
+                        <button class="tool" data-tool="light-r" title="Luz Vermelha Néon">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><circle cx="20" cy="20" r="10" fill="rgba(255, 0, 85, 0.2)" stroke="#ff0055" stroke-width="2"/><circle cx="20" cy="20" r="4" fill="#ff0055"/></svg>
+                        </button>
+                        <button class="tool" data-tool="light-b" title="Luz Azul Néon">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><circle cx="20" cy="20" r="10" fill="rgba(0, 255, 255, 0.2)" stroke="#00ffff" stroke-width="2"/><circle cx="20" cy="20" r="4" fill="#00ffff"/></svg>
+                        </button>
+                        <button class="tool" data-tool="light-y" title="Luz Amarela Néon">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><circle cx="20" cy="20" r="10" fill="rgba(255, 235, 59, 0.2)" stroke="#ffeb3b" stroke-width="2"/><circle cx="20" cy="20" r="4" fill="#ffeb3b"/></svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="category-block">
+                    <div class="category-header">🎰 SORTE / JACKPOTS</div>
+                    <div class="tools-grid">
+                        <button class="tool" data-tool="light-g3-line" title="3 Luzes em Linha (Prob: 6.25% Jackpot)">
+                            <svg width="28" height="28" viewBox="0 0 40 40">
+                                <circle cx="10" cy="20" r="5" fill="rgba(0,255,0,0.4)" stroke="#00ff00" stroke-width="1.5"/>
+                                <circle cx="20" cy="20" r="5" fill="rgba(255,0,85,0.4)" stroke="#ff0055" stroke-width="1.5"/>
+                                <circle cx="30" cy="20" r="5" fill="rgba(0,255,255,0.4)" stroke="#00ffff" stroke-width="1.5"/>
+                            </svg>
+                        </button>
+                        <button class="tool" data-tool="light-g3-tri" title="3 Luzes em Triângulo (Prob: 6.25% Jackpot)">
+                            <svg width="28" height="28" viewBox="0 0 40 40">
+                                <circle cx="13" cy="25" r="5" fill="rgba(0,255,0,0.4)" stroke="#00ff00" stroke-width="1.5"/>
+                                <circle cx="27" cy="25" r="5" fill="rgba(255,0,85,0.4)" stroke="#ff0055" stroke-width="1.5"/>
+                                <circle cx="20" cy="13" r="5" fill="rgba(0,255,255,0.4)" stroke="#00ffff" stroke-width="1.5"/>
+                            </svg>
+                        </button>
+                        <button class="tool" data-tool="light-g4-line" title="4 Luzes em Linha (Prob: 1.56% Bola Extra)">
+                            <svg width="28" height="28" viewBox="0 0 40 40">
+                                <circle cx="7" cy="20" r="4.5" fill="rgba(0,255,0,0.4)" stroke="#00ff00" stroke-width="1.2"/>
+                                <circle cx="16" cy="20" r="4.5" fill="rgba(255,0,85,0.4)" stroke="#ff0055" stroke-width="1.2"/>
+                                <circle cx="24" cy="20" r="4.5" fill="rgba(0,255,255,0.4)" stroke="#00ffff" stroke-width="1.2"/>
+                                <circle cx="33" cy="20" r="4.5" fill="rgba(255,235,59,0.4)" stroke="#ffeb3b" stroke-width="1.2"/>
+                            </svg>
+                        </button>
+                        <button class="tool" data-tool="light-g4-square" title="4 Luzes em Quadrado (Prob: 1.56% Bola Extra)">
+                            <svg width="28" height="28" viewBox="0 0 40 40">
+                                <circle cx="13" cy="13" r="5" fill="rgba(0,255,0,0.4)" stroke="#00ff00" stroke-width="1.5"/>
+                                <circle cx="27" cy="13" r="5" fill="rgba(255,0,85,0.4)" stroke="#ff0055" stroke-width="1.5"/>
+                                <circle cx="13" cy="27" r="5" fill="rgba(0,255,255,0.4)" stroke="#00ffff" stroke-width="1.5"/>
+                                <circle cx="27" cy="27" r="5" fill="rgba(255,235,59,0.4)" stroke="#ffeb3b" stroke-width="1.5"/>
+                            </svg>
+                        </button>
+                    </div>
+                </div>
+
+                <div class="category-block">
+                    <div class="category-header">🔧 OUTROS / UTILS</div>
+                    <div class="tools-grid">
+                        <button class="tool" data-tool="trash" title="Apagar Peça (Borracha)">
+                            <svg width="28" height="28" viewBox="0 0 40 40"><rect x="10" y="14" width="20" height="20" rx="2" fill="none" stroke="#e91e63" stroke-width="2"/><line x1="8" y1="10" x2="32" y2="10" stroke="#e91e63" stroke-width="2.5"/><line x1="16" y1="18" x2="16" y2="28" stroke="#e91e63" stroke-width="1.5"/><line x1="24" y1="18" x2="24" y2="28" stroke="#e91e63" stroke-width="1.5"/></svg>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="section-title">MESA</div>
+            <div class="settings">
+                <label>Inclinação: <span id="grav-val">1.0</span></label>
+                <input type="range" id="gravity-slider" min="0.5" max="2.0" step="0.1" value="1.0">
+            </div>
+
+            <div class="section-title">OFICINA DE MESAS</div>
+            <div class="table-manager" style="display:flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
+                <input type="text" id="table-name-input" placeholder="Nome da nova mesa..." style="width: 100%; padding: 8px; border-radius: 4px; border: none; background: #333; color: white; box-sizing: border-box;">
+                <button id="btn-save-api" class="btn" style="background: #4caf50; color: white;">💾 Gravar na Oficina</button>
+                
+                <div class="divider" style="margin: 10px 0;"></div>
+                
+                <select id="table-select" style="width: 100%; padding: 8px; border-radius: 4px; border: none; background: #333; color: white; box-sizing: border-box;">
+                    <option value="">-- Selecionar Mesa --</option>
+                </select>
+                <div style="display: flex; gap: 8px;">
+                    <button id="btn-load-api" class="btn" style="flex: 1; background: #2196f3; color: white;">📂 Carregar</button>
+                    <button id="btn-import-file" class="btn" style="flex: 1; background: #673ab7; color: white;">📥 Importar</button>
+                </div>
+                <input type="file" id="file-input" accept=".json,*" style="display: none;">
+            </div>
+
+            <div class="actions">
+                <button id="btn-play" class="btn-primary">JOGAR 🚀</button>
+                <button id="btn-edit" class="btn-secondary hidden">EDITAR 🛠️</button>
+                <button id="btn-clear" class="btn-danger">LIMPAR 🗑️</button>
+            </div>
+        </aside>
+
+        <main id="editor-container">
+            <div id="table-wrapper">
+                <div id="in-game-header">
+                    <div id="header-controls">
+                        <button id="btn-sound-toggle" class="header-btn" title="Ligar/Desligar Som">🔊 SOM</button>
+                        <button id="btn-nudge" class="header-btn" title="Abanar/Sacudir a mesa se a bola ficar presa (Tecla N)">📳 ABANAR</button>
+                        <button id="btn-fullscreen" class="header-btn" title="Ecrã Inteiro">📱 ECRÃ</button>
+                        <button id="btn-reset-ball" class="header-btn" title="Sair do Jogo e ir para o Menu (ESC)">🚪 SAIR</button>
+                        <button id="btn-goto-workshop" class="header-btn" title="Ir para a Oficina">🛠️ OFICINA</button>
+                    </div>
+                    <div id="header-stats">
+                        <span id="canvas-score">SCORE: 0</span>
+                        <span id="canvas-balls">BOLAS: 3</span>
+                    </div>
+                </div>
+                <div id="canvas-wrapper">
+                    <div id="grid-overlay"></div>
+                    <canvas id="game-canvas"></canvas>
+                    <div id="launch-hint" class="hidden">
+                        CARREGUE EM [A] E [D] PARA LANÇAR A BOLA 🚀
+                    </div>
+                </div>
+                <!-- Botões de Flipper Mobile -->
+                <div id="mobile-flipper-buttons" class="hidden">
+                    <button id="mobile-btn-left" class="flipper-button">ESQ</button>
+                    <button id="mobile-btn-right" class="flipper-button">DIR</button>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <!-- Modal de Recordes / Highscores (Global Overlay) -->
+    <div id="highscore-modal" class="hidden">
+        <div class="modal-content">
+            <h2 id="modal-title">TOP 10</h2>
+            <div id="modal-table-selection" style="margin-top: 15px; margin-bottom: 10px;">
+                <label for="modal-table-select" style="color: #00ffff; font-family: 'Orbitron', sans-serif; display: block; margin-bottom: 5px; font-size: 14px; text-align: left;">MESA:</label>
+                <select id="modal-table-select" style="width: 100%; padding: 10px; background: #1a0826; border: 2px solid var(--accent); color: #fff; border-radius: 8px; font-family: 'Orbitron', sans-serif;">
+                    <option value="Default Table">Default Table</option>
+                </select>
+            </div>
+            <div id="highscores-list"></div>
+            <div id="new-record-form" class="hidden" style="margin-top: 10px;">
+                <p style="color:#00ffff; font-weight:bold; margin-bottom: 5px;">🏆 NOVO RECORDE!</p>
+                <input type="text" id="player-name" placeholder="NOME" maxlength="10" style="text-align: center; text-transform: uppercase;">
+                <button id="btn-save-score" class="btn-primary" style="width:100%; margin-top:5px; padding: 10px; font-weight: bold;">Gravar Nome</button>
+            </div>
+            <div class="modal-actions">
+                <button id="modal-btn-play" class="btn-primary" style="flex: 1; padding: 12px; font-weight: bold; border-radius: 8px;">JOGAR 🚀</button>
+                <button id="modal-btn-exit" class="btn-secondary" style="flex: 1; padding: 12px; font-weight: bold; border-radius: 8px;">WORKSHOP 🛠️</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="/src/main.ts"></script>
+</body>
+</html>
