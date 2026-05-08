@@ -2859,6 +2859,8 @@ document.getElementById('gravity-slider')?.addEventListener('input', (e) => {
 });
 
 // MATRIX DIGITAL RAIN & PASSWORD SYSTEM
+let matrixInterval: any = null;
+
 const initMatrixRain = () => {
     const canvas = document.getElementById('matrix-canvas') as HTMLCanvasElement;
     if (!canvas) return null;
@@ -2904,7 +2906,8 @@ const initMatrixRain = () => {
         }
     };
     
-    return setInterval(draw, 33);
+    matrixInterval = setInterval(draw, 33);
+    return matrixInterval;
 };
 
 const PASSWORD_SECRET = "PINBALL2026";
@@ -2921,6 +2924,10 @@ const initPasswordGate = () => {
     const showHub = () => {
         loginScreen?.classList.add('hidden');
         hubScreen?.classList.remove('hidden');
+        if (matrixInterval) {
+            clearInterval(matrixInterval);
+            matrixInterval = null;
+        }
     };
     
     if (token === PASSWORD_SECRET) {
