@@ -2737,9 +2737,9 @@ document.getElementById('btn-delete-api')?.addEventListener('click', async () =>
     const pwd = prompt("Digite a Palavra-Chave de Administrador para autorizar a remoção:");
     if (!pwd) return;
     
-    // Aceitar PINBALL2026 ou ADMIN2026 como palavras-passe seguras
-    if (pwd.toUpperCase() !== 'PINBALL2026' && pwd.toUpperCase() !== 'ADMIN2026') {
-        alert("Palavra-Chave incorreta! Acesso negado.");
+    // Apenas permitir a palavra-chave exclusiva ADMIN2026 em maiúsculas!
+    if (pwd !== 'ADMIN2026') {
+        alert("Palavra-Chave de Administrador incorreta! Acesso negado.");
         return;
     }
     
