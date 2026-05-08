@@ -53,29 +53,52 @@ class SoundEffects {
         if (!this.ctx || !isSoundEnabled) return;
         const now = this.ctx.currentTime;
         
-        // Oscilador principal (Bumper de alta frequência metálico)
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(600, now);
-        osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
-        
-        // Filtro passa-banda para dar o tom ressonante de bumper
-        const filter = this.ctx.createBiquadFilter();
-        filter.type = 'bandpass';
-        filter.frequency.setValueAtTime(1000, now);
-        filter.Q.setValueAtTime(3.0, now);
-        
-        gain.gain.setValueAtTime(0.22, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
-        
-        osc.connect(filter);
-        filter.connect(gain);
-        gain.connect(this.ctx.destination);
-        
-        osc.start(now);
-        osc.stop(now + 0.18);
+        if (activeTheme === 'retro') {
+            // Sino/Chime mecânico clássico ("PIN!") de alta fidelidade
+            const notes = [987.77, 1318.51, 1975.53]; // B5, E6, B6 (harmónicos metálicos puros e ressonantes)
+            notes.forEach((freq, idx) => {
+                const osc = this.ctx!.createOscillator();
+                const gain = this.ctx!.createGain();
+                
+                osc.type = 'sine'; // Sinos de pinball são ondas sinusoidais puras de ressonância mecânica
+                osc.frequency.setValueAtTime(freq, now);
+                
+                // Diminuir ligeiramente o volume nos harmónicos superiores
+                const vol = idx === 0 ? 0.16 : 0.08;
+                gain.gain.setValueAtTime(vol, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.32); // Ressonância longa de metal polido
+                
+                osc.connect(gain);
+                gain.connect(this.ctx!.destination);
+                
+                osc.start(now);
+                osc.stop(now + 0.35);
+            });
+        } else {
+            // Oscilador principal (Bumper de alta frequência metálico)
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            
+            osc.type = 'triangle';
+            osc.frequency.setValueAtTime(600, now);
+            osc.frequency.exponentialRampToValueAtTime(1200, now + 0.08);
+            
+            // Filtro passa-banda para dar o tom ressonante de bumper
+            const filter = this.ctx.createBiquadFilter();
+            filter.type = 'bandpass';
+            filter.frequency.setValueAtTime(1000, now);
+            filter.Q.setValueAtTime(3.0, now);
+            
+            gain.gain.setValueAtTime(0.22, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.18);
+            
+            osc.connect(filter);
+            filter.connect(gain);
+            gain.connect(this.ctx.destination);
+            
+            osc.start(now);
+            osc.stop(now + 0.18);
+        }
     }
 
     playTarget() {
@@ -83,28 +106,50 @@ class SoundEffects {
         if (!this.ctx || !isSoundEnabled) return;
         const now = this.ctx.currentTime;
         
-        // Dois osciladores em harmonia (Chime duplo de alvo)
-        const osc1 = this.ctx.createOscillator();
-        const osc2 = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
-        
-        osc1.type = 'sine';
-        osc1.frequency.setValueAtTime(880, now); // Nota Lá (A5)
-        
-        osc2.type = 'sine';
-        osc2.frequency.setValueAtTime(1100, now); // Nota Dó# (C#6) - Harmonia maior
-        
-        gain.gain.setValueAtTime(0.18, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
-        
-        osc1.connect(gain);
-        osc2.connect(gain);
-        gain.connect(this.ctx.destination);
-        
-        osc1.start(now);
-        osc2.start(now);
-        osc1.stop(now + 0.22);
-        osc2.stop(now + 0.22);
+        if (activeTheme === 'retro') {
+            // Sino metálico de alvo (Tom de chime duplo harmonioso)
+            const notes = [783.99, 1174.66]; // G5, D6 (Chime mecânico)
+            notes.forEach((freq, idx) => {
+                const osc = this.ctx!.createOscillator();
+                const gain = this.ctx!.createGain();
+                
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(freq, now);
+                
+                const vol = idx === 0 ? 0.14 : 0.07;
+                gain.gain.setValueAtTime(vol, now);
+                gain.gain.exponentialRampToValueAtTime(0.001, now + 0.25);
+                
+                osc.connect(gain);
+                gain.connect(this.ctx!.destination);
+                
+                osc.start(now);
+                osc.stop(now + 0.28);
+            });
+        } else {
+            // Dois osciladores em harmonia (Chime duplo de alvo)
+            const osc1 = this.ctx.createOscillator();
+            const osc2 = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            
+            osc1.type = 'sine';
+            osc1.frequency.setValueAtTime(880, now); // Nota Lá (A5)
+            
+            osc2.type = 'sine';
+            osc2.frequency.setValueAtTime(1100, now); // Nota Dó# (C#6) - Harmonia maior
+            
+            gain.gain.setValueAtTime(0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.22);
+            
+            osc1.connect(gain);
+            osc2.connect(gain);
+            gain.connect(this.ctx.destination);
+            
+            osc1.start(now);
+            osc2.start(now);
+            osc1.stop(now + 0.22);
+            osc2.stop(now + 0.22);
+        }
     }
 
     playFlipper() {
@@ -1027,8 +1072,13 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         const radius = c.type === 'bumper-s' ? 20 : (c.type === 'bumper-l' ? 35 : (isLarge ? 50 : 30));
         
         if (activeTheme === 'retro') {
-            // Tampa branca de bumper retro clássico (Williams/Gottlieb) com estrela vermelha!
-            ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 2.5;
+            // Tampa de bumper retro clássico (Williams/Gottlieb) - Brilha em amarelo/laranja incandescente quando batida!
+            ctx.fillStyle = extraData.hit ? '#ffe082' : '#ffffff'; 
+            ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 2.5;
+            if (extraData.hit) {
+                ctx.shadowBlur = 18;
+                ctx.shadowColor = '#ffb300'; // Brilho de lâmpada vintage
+            }
             ctx.beginPath();
             if (isTri) {
                 const w = isLarge ? 43.3 : 26; const h = isLarge ? 25 : 15;
@@ -1037,6 +1087,7 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
                 ctx.arc(0, 0, radius, 0, Math.PI*2);
             }
             ctx.fill(); ctx.stroke();
+            ctx.shadowBlur = 0; // repor para o resto do bumper
             
             // Anel dourado/metalizado interior de impacto
             ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 2;
@@ -1126,12 +1177,17 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
     } else if (c.type === 'target' || c.type === 'target-p') {
         const isPerm = c.type === 'target-p';
         if (activeTheme === 'retro') {
-            // Alvo mecânico de plástico sólido (branco com centro vermelho ou amarelo)
-            ctx.fillStyle = isPerm ? '#ffca28' : '#ffffff'; ctx.strokeStyle = '#b71c1c'; ctx.lineWidth = 2.5;
-            ctx.beginPath(); ctx.roundRect(-15, -15, 30, 30, 6); ctx.fill(); ctx.stroke();
+            // Alvo mecânico clássico (Drop target retangular branco/amarelo com bullseye de círculos concêntricos vermelhos!)
+            ctx.fillStyle = isPerm ? '#ffca28' : '#ffffff'; 
+            ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.roundRect(-15, -15, 30, 30, 4); ctx.fill(); ctx.stroke();
             
-            // Ponto central de impacto (Bullseye)
-            ctx.fillStyle = '#b71c1c'; ctx.beginPath(); ctx.arc(0, 0, 6, 0, Math.PI*2); ctx.fill();
+            // Desenhar os Círculos Concêntricos de Tiro ao Alvo (Bullseye Vermelho Retro)
+            ctx.strokeStyle = '#b71c1c'; ctx.lineWidth = 2.5;
+            ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI*2); ctx.stroke();
+            
+            ctx.fillStyle = '#b71c1c';
+            ctx.beginPath(); ctx.arc(0, 0, 4.5, 0, Math.PI*2); ctx.fill();
         } else {
             ctx.fillStyle = isPerm ? '#ffeb3b' : '#ff00ff'; ctx.strokeStyle = isPerm ? '#e91e63' : '#00ffff'; ctx.lineWidth = 2;
             ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
