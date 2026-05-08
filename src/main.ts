@@ -158,40 +158,36 @@ class SoundEffects {
         if (!this.ctx || !isSoundEnabled) return;
         const now = this.ctx.currentTime;
         
-        // Evitar som saturado/estranho (debounce de 150ms) quando a roleta/spinner roda muito rápido!
+        // Evitar sobreposição excessiva de sons de rotação (debounce de 150ms)
         if (now - this.lastSpinnerTime < 0.15) {
             return;
         }
         this.lastSpinnerTime = now;
         
-        const duration = 0.15 + Math.min(0.5, speedFactor * 0.05);
-        const osc = this.ctx.createOscillator();
-        const gain = this.ctx.createGain();
+        // Simular a corrente de bicicleta: uma série de cliques rápidos ("ticks")
+        // O número de cliques e velocidade dependem da velocidade de rotação
+        const clickCount = Math.min(8, Math.round(speedFactor * 1.5));
+        const interval = 0.04; // 40ms entre cliques para um som contínuo e mecânico de catraca
         
-        osc.type = 'square';
-        osc.frequency.setValueAtTime(350, now);
-        osc.frequency.linearRampToValueAtTime(120, now + duration);
-        
-        // Modulação rápida de cliques para simular a rotação
-        const modulator = this.ctx.createOscillator();
-        const modGain = this.ctx.createGain();
-        modulator.type = 'square';
-        modulator.frequency.setValueAtTime(18, now);
-        modGain.gain.setValueAtTime(150, now);
-        
-        gain.gain.setValueAtTime(0.12, now);
-        gain.gain.exponentialRampToValueAtTime(0.001, now + duration);
-        
-        modulator.connect(modGain);
-        modGain.connect(osc.frequency);
-        
-        osc.connect(gain);
-        gain.connect(this.ctx.destination);
-        
-        modulator.start(now);
-        osc.start(now);
-        modulator.stop(now + duration);
-        osc.stop(now + duration);
+        for (let i = 0; i < clickCount; i++) {
+            const clickTime = now + i * interval;
+            const clickOsc = this.ctx.createOscillator();
+            const clickGain = this.ctx.createGain();
+            
+            // Usar onda triangular para cliques percussivos mecânicos e agradáveis (sem agudos estridentes)
+            clickOsc.type = 'triangle';
+            clickOsc.frequency.setValueAtTime(1400 - (i * 50), clickTime); // Ligeira descida de tom simulando abrandamento
+            clickOsc.frequency.exponentialRampToValueAtTime(180, clickTime + 0.02);
+            
+            clickGain.gain.setValueAtTime(0.05, clickTime);
+            clickGain.gain.exponentialRampToValueAtTime(0.001, clickTime + 0.02);
+            
+            clickOsc.connect(clickGain);
+            clickGain.connect(this.ctx.destination);
+            
+            clickOsc.start(clickTime);
+            clickOsc.stop(clickTime + 0.025);
+        }
     }
 
     playHole() {
@@ -1437,7 +1433,7 @@ const runGameSimulation = (isWarping = false) => {
             b.createFixture(planck.Circle(Vec2(0, 0), pxToM(16)), { isSensor: true });
             
             // Portão/Gate fixture: começa fechado (barreira sólida na base) - Centrado em (0, 26)
-            const startOpen = c.gateOpen === true;
+            const startOpen = false; // Começa sempre FECHADO para forçar o jogador a acender as luzes!
             const gateFixture = startOpen ? null : b.createFixture(planck.Box(pxToM(26), pxToM(2), Vec2(0, pxToM(26)), 0), { restitution: 0.2 });
             
             b.setUserData({
@@ -1518,6 +1514,13 @@ const runGameSimulation = (isWarping = false) => {
                             marbleBody.applyLinearImpulse(dir.mul(55), marbleBody.getWorldCenter());
                         }
                         dHole.trapped = false;
+                        // Fechar o portão imediatamente após ejetar!
+                        dHole.gateOpen = false;
+                        dHole.active = false;
+                        dHole.hadBall = false;
+                        if (!dHole.gateFixture) {
+                            dHole.gateFixture = originalHoleBody.createFixture(planck.Box(pxToM(26), pxToM(2), Vec2(0, pxToM(26)), 0), { restitution: 0.2 });
+                        }
                     }, 1200);
                 }
                 
@@ -2237,6 +2240,14 @@ const runGameSimulation = (isWarping = false) => {
                                             marbleBody.applyLinearImpulse(dir.mul(55), marbleBody.getWorldCenter());
                                         }
                                         data.trapped = false;
+                                        // Fechar o portão imediatamente após ejetar!
+                                        data.gateOpen = false;
+                                        data.active = false;
+                                        data.hadBall = false;
+                                        if (!data.gateFixture) {
+                                            data.gateFixture = b.createFixture(planck.Box(pxToM(26), pxToM(2), Vec2(0, pxToM(26)), 0), { restitution: 0.2 });
+                                        }
+                                        showDisplayMessage("PORTA FECHADA! 🔒", colorHex, 1000);
                                     }, 1200);
                                 }
                             }
