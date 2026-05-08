@@ -1559,7 +1559,13 @@ const runGameSimulation = (isWarping = false) => {
                 if (isRecord && score > 0) {
                     document.getElementById('new-record-form')?.classList.remove('hidden');
                     document.querySelector('.modal-actions')?.classList.add('hidden');
-                    (document.getElementById('player-name') as HTMLInputElement).focus();
+                    const nameInput = document.getElementById('player-name') as HTMLInputElement;
+                    if (nameInput) {
+                        const savedName = localStorage.getItem('arcade_hub_player_name') || '';
+                        nameInput.value = savedName;
+                        nameInput.focus();
+                        nameInput.select(); // Deixa o texto selecionado para aceitar direto ou alterar digitando!
+                    }
                 }
             }, 3000);
         } else {
@@ -2527,10 +2533,15 @@ const updateHighscoreTableList = () => {
 
 document.getElementById('btn-save-score')?.addEventListener('click', () => {
     const nameInput = document.getElementById('player-name') as HTMLInputElement;
-    const name = nameInput.value.trim() || 'ANÓNIMO';
+    const name = nameInput.value.trim().toUpperCase() || 'ANÓNIMO';
+    
+    // Guardar o nome no localStorage para lembrar na próxima sessão!
+    if (name && name !== 'ANÓNIMO') {
+        localStorage.setItem('arcade_hub_player_name', name);
+    }
+    
     checkAndSaveHighscore(name, score);
     document.getElementById('new-record-form')?.classList.add('hidden');
-    nameInput.value = '';
     showHighscoreModal("RECORDES");
 });
 
