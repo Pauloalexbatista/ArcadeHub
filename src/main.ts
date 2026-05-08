@@ -730,13 +730,13 @@ canvas.addEventListener('click', async (e) => {
 
 const drawBackground = () => {
     if (activeTheme === 'retro') {
-        // Fundo de madeira vintage quente e realista
-        ctx.fillStyle = '#8e5d38'; // Carvalho quente
+        // Fundo de madeira envernizada clara (Bétula/Faia natural) - Super leve e polida como a foto!
+        ctx.fillStyle = '#f4d5b7'; 
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         
-        // Desenhar veios de madeira procedimentais
-        ctx.strokeStyle = '#5a371c';
-        ctx.lineWidth = 1.2;
+        // Desenhar veios de madeira procedimentais suaves (tom tan dourado suave)
+        ctx.strokeStyle = '#cca17b';
+        ctx.lineWidth = 1.0;
         for (let y = -20; y < PLAY_ZONE_BOTTOM; y += 25) {
             ctx.beginPath();
             ctx.moveTo(0, y + Math.sin(y * 0.05) * 12);
@@ -744,8 +744,8 @@ const drawBackground = () => {
             ctx.stroke();
         }
         
-        // Linhas de grão de madeira finas verticais
-        ctx.strokeStyle = '#9c6a45';
+        // Linhas verticais subtis de grão de madeira
+        ctx.strokeStyle = '#e6be9a';
         ctx.lineWidth = 0.5;
         for (let x = 20; x < WIDTH; x += 40) {
             ctx.beginPath();
@@ -754,12 +754,12 @@ const drawBackground = () => {
             ctx.stroke();
         }
         
-        // Fundo do Painel (Couro escuro ou madeira escura)
-        ctx.fillStyle = '#4e342e'; // Mogno escuro
+        // Fundo do Painel (Madeira de faia envernizada média, harmoniosa)
+        ctx.fillStyle = '#dbb18a'; 
         ctx.fillRect(0, PLAY_ZONE_BOTTOM, WIDTH, HEIGHT - PLAY_ZONE_BOTTOM);
         
-        // Molduras de latão e madeira escura
-        ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 6;
+        // Molduras clássicas de carvalho médio e latão dourado polido
+        ctx.strokeStyle = '#a87a53'; ctx.lineWidth = 6;
         ctx.strokeRect(3, 3, WIDTH - 6, HEIGHT - 6);
         ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 2; // Latão dourado
         ctx.strokeRect(6, 6, WIDTH - 12, HEIGHT - 12);
