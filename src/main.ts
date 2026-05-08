@@ -330,24 +330,24 @@ const updateBallsDisplay = () => {
 };
 
 const formatScore = (num: number) => {
-    const val = num % 10000000;
+    const val = num % 1000000000;
     return val.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ".");
 };
 
 const updateScore = (points: number) => {
-    score = (score + points) % 10000000; // Limitado a 7 dígitos (9.999.999) para caber perfeitamente
+    score = (score + points) % 1000000000; // Limitado a 9 dígitos (999.999.999)
     const scoreEl = document.getElementById('canvas-score');
     if (scoreEl) {
-        const scoreStr = score.toString().padStart(7, '0');
+        const scoreStr = score.toString().padStart(9, '0');
         const previousDigits = Array.from(scoreEl.querySelectorAll('.reel-digit')).map(el => el.textContent);
         
         let html = '';
-        for (let i = 0; i < 7; i++) {
+        for (let i = 0; i < 9; i++) {
             const digit = scoreStr[i];
             const hasChanged = previousDigits.length > 0 && previousDigits[i] !== digit;
             const animClass = hasChanged ? 'spin-reel' : '';
             html += `<div class="reel-digit ${animClass}">${digit}</div>`;
-            if (i === 0 || i === 3) {
+            if (i === 2 || i === 5) {
                 html += `<div class="reel-separator">.</div>`;
             }
         }
@@ -1548,13 +1548,16 @@ const runGameSimulation = (isWarping = false) => {
                             marbleBody.applyLinearImpulse(dir.mul(55), marbleBody.getWorldCenter());
                         }
                         dHole.trapped = false;
-                        // Fechar o portão imediatamente após ejetar!
-                        dHole.gateOpen = false;
-                        dHole.active = false;
-                        dHole.hadBall = false;
-                        if (!dHole.gateFixture) {
-                            dHole.gateFixture = originalHoleBody.createFixture(planck.Box(pxToM(26), pxToM(2), Vec2(0, pxToM(26)), 0), { restitution: 0.2 });
-                        }
+                        
+                        // Atrasar o fecho físico da porta por 250ms para que a bola tenha tempo de sair da caixa!
+                        setTimeout(() => {
+                            dHole.gateOpen = false;
+                            dHole.active = false;
+                            dHole.hadBall = false;
+                            if (!dHole.gateFixture) {
+                                dHole.gateFixture = originalHoleBody.createFixture(planck.Box(pxToM(26), pxToM(2), Vec2(0, pxToM(26)), 0), { restitution: 0.2 });
+                            }
+                        }, 250);
                     }, 1200);
                 }
                 
@@ -2280,14 +2283,17 @@ const runGameSimulation = (isWarping = false) => {
                                             marbleBody.applyLinearImpulse(dir.mul(55), marbleBody.getWorldCenter());
                                         }
                                         data.trapped = false;
-                                        // Fechar o portão imediatamente após ejetar!
-                                        data.gateOpen = false;
-                                        data.active = false;
-                                        data.hadBall = false;
-                                        if (!data.gateFixture) {
-                                            data.gateFixture = b.createFixture(planck.Box(pxToM(26), pxToM(2), Vec2(0, pxToM(26)), 0), { restitution: 0.2 });
-                                        }
-                                        showDisplayMessage("PORTA FECHADA! 🔒", colorHex, 1000);
+                                        
+                                        // Atrasar o fecho físico da porta por 250ms para que a bola tenha tempo de sair da caixa!
+                                        setTimeout(() => {
+                                            data.gateOpen = false;
+                                            data.active = false;
+                                            data.hadBall = false;
+                                            if (!data.gateFixture) {
+                                                data.gateFixture = b.createFixture(planck.Box(pxToM(26), pxToM(2), Vec2(0, pxToM(26)), 0), { restitution: 0.2 });
+                                            }
+                                            showDisplayMessage("PORTA FECHADA! 🔒", colorHex, 1000);
+                                        }, 250);
                                     }, 1200);
                                 }
                             }
