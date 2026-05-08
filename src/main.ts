@@ -2722,6 +2722,52 @@ document.getElementById('btn-load-api')?.addEventListener('click', async () => {
     } catch (e) {}
 });
 
+document.getElementById('btn-delete-api')?.addEventListener('click', async () => {
+    const select = document.getElementById('table-select') as HTMLSelectElement;
+    const name = select.value;
+    if (!name) {
+        alert("Por favor, selecione uma mesa para apagar.");
+        return;
+    }
+    
+    // Confirmação dupla de segurança
+    const confirmDel = confirm(`Tem a certeza absoluta de que deseja apagar a mesa "${name}" da VPS?\n\nEsta ação é irreversível!`);
+    if (!confirmDel) return;
+    
+    const pwd = prompt("Digite a Palavra-Chave de Administrador para autorizar a remoção:");
+    if (!pwd) return;
+    
+    // Aceitar PINBALL2026 ou ADMIN2026 como palavras-passe seguras
+    if (pwd.toUpperCase() !== 'PINBALL2026' && pwd.toUpperCase() !== 'ADMIN2026') {
+        alert("Palavra-Chave incorreta! Acesso negado.");
+        return;
+    }
+    
+    try {
+        const res = await fetch(`/api/tables/${encodeURIComponent(name)}`, {
+            method: 'DELETE'
+        });
+        if (res.ok) {
+            alert(`Sucesso! A mesa "${name}" foi permanentemente apagada do disco da VPS! 🗑️`);
+            // Limpar do localStorage local também para total sincronia
+            localStorage.removeItem(`pinball_table_${name}`);
+            // Limpar o editor se a mesa ativa for a apagada
+            const nameInput = document.getElementById('table-name-input') as HTMLInputElement;
+            if (nameInput && nameInput.value === name) {
+                components = [];
+                nameInput.value = '';
+                drawEditor();
+            }
+            // Recarregar a lista de mesas
+            loadTableList();
+        } else {
+            alert("Erro ao apagar a mesa da VPS.");
+        }
+    } catch (e) {
+        alert("Erro na ligação ao servidor VPS.");
+    }
+});
+
 // Carregar lista de mesas do servidor
 document.getElementById('btn-import-file')?.addEventListener('click', () => {
     document.getElementById('file-input')?.click();

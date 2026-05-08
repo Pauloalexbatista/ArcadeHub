@@ -58,6 +58,22 @@ app.get('/api/tables/:name', (req, res) => {
     }
 });
 
+// API: Apagar mesa individual
+app.delete('/api/tables/:name', (req, res) => {
+    try {
+        const name = req.params.name;
+        const filePath = path.join(tablesDir, `${name}.json`);
+        if (fs.existsSync(filePath)) {
+            fs.unlinkSync(filePath);
+            res.json({ success: true, message: `Mesa ${name} apagada com sucesso` });
+        } else {
+            res.status(404).json({ error: 'Ficheiro não encontrado' });
+        }
+    } catch (e) {
+        res.status(500).json({ error: 'Erro ao apagar tabela da VPS' });
+    }
+});
+
 // Suporte para rotas de entrada SPA (redirecionar qualquer outra rota para o index.html)
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
