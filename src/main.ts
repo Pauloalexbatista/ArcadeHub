@@ -274,6 +274,7 @@ const sounds = new SoundEffects();
 const NEON_COLORS = ['#ff00ff', '#00ffff', '#00ff00', '#ffeb3b'];
 
 type Tool = 'pin' | 'prego' | 'wall' | 'wall-b' | 'bumper-s' | 'bumper-l' | 'bumper-t' | 'bumper-t-l' | 'flipper-l' | 'flipper-r' | 'flipper-s-l' | 'flipper-s-r' | 'hole' | 'hole-g' | 'hole-r' | 'hole-b' | 'hole-y' | 'target' | 'target-p' | 'spinner' | 'roleta' | 'light' | 'light-g' | 'light-r' | 'light-b' | 'light-y' | 'light-g3-line' | 'light-g3-tri' | 'light-g4-line' | 'light-g4-square' | 'trash' | 'plunger' | 'spawn';
+let activeTheme: 'neon' | 'retro' = 'neon';
 let currentTool: Tool = 'pin';
 let isPlaying = false;
 let components: any[] = [];
@@ -727,27 +728,68 @@ canvas.addEventListener('click', async (e) => {
     drawEditor();
 });
 
-const drawEditor = () => {
-    ctx.clearRect(0, 0, WIDTH, HEIGHT);
-    
-    // Moldura Neon Exterior (Limites da Mesa)
-    ctx.save();
-    ctx.strokeStyle = '#00ffff';
-    ctx.lineWidth = 4;
-    ctx.shadowBlur = 15;
-    ctx.shadowColor = '#00ffff';
-    ctx.strokeRect(2, 2, WIDTH - 4, HEIGHT - 4);
-    ctx.restore();
+const drawBackground = () => {
+    if (activeTheme === 'retro') {
+        // Fundo de madeira vintage quente e realista
+        ctx.fillStyle = '#8e5d38'; // Carvalho quente
+        ctx.fillRect(0, 0, WIDTH, HEIGHT);
+        
+        // Desenhar veios de madeira procedimentais
+        ctx.strokeStyle = '#5a371c';
+        ctx.lineWidth = 1.2;
+        for (let y = -20; y < PLAY_ZONE_BOTTOM; y += 25) {
+            ctx.beginPath();
+            ctx.moveTo(0, y + Math.sin(y * 0.05) * 12);
+            ctx.bezierCurveTo(WIDTH / 3, y - 8, 2 * WIDTH / 3, y + 16, WIDTH, y + Math.cos(y * 0.05) * 12);
+            ctx.stroke();
+        }
+        
+        // Linhas de grão de madeira finas verticais
+        ctx.strokeStyle = '#9c6a45';
+        ctx.lineWidth = 0.5;
+        for (let x = 20; x < WIDTH; x += 40) {
+            ctx.beginPath();
+            ctx.moveTo(x + Math.sin(x) * 8, 0);
+            ctx.lineTo(x + Math.cos(x) * 8, PLAY_ZONE_BOTTOM);
+            ctx.stroke();
+        }
+        
+        // Fundo do Painel (Couro escuro ou madeira escura)
+        ctx.fillStyle = '#4e342e'; // Mogno escuro
+        ctx.fillRect(0, PLAY_ZONE_BOTTOM, WIDTH, HEIGHT - PLAY_ZONE_BOTTOM);
+        
+        // Molduras de latão e madeira escura
+        ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 6;
+        ctx.strokeRect(3, 3, WIDTH - 6, HEIGHT - 6);
+        ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 2; // Latão dourado
+        ctx.strokeRect(6, 6, WIDTH - 12, HEIGHT - 12);
+        
+        // Divisória de latão
+        ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.moveTo(0, PLAY_ZONE_BOTTOM); ctx.lineTo(WIDTH, PLAY_ZONE_BOTTOM); ctx.stroke();
+    } else {
+        ctx.clearRect(0, 0, WIDTH, HEIGHT);
+        
+        // Moldura Neon Ciano
+        ctx.save();
+        ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 4; ctx.shadowBlur = 15; ctx.shadowColor = '#00ffff';
+        ctx.strokeRect(2, 2, WIDTH - 4, HEIGHT - 4);
+        ctx.restore();
+        
+        // Divisória Neon
+        ctx.save();
+        ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 2; ctx.shadowBlur = 10; ctx.shadowColor = '#00ffff';
+        ctx.beginPath(); ctx.moveTo(0, PLAY_ZONE_BOTTOM); ctx.lineTo(WIDTH, PLAY_ZONE_BOTTOM); ctx.stroke();
+        ctx.restore();
+        
+        // Fundo do Painel Cyber
+        ctx.fillStyle = 'rgba(5, 2, 10, 0.95)';
+        ctx.fillRect(2, PLAY_ZONE_BOTTOM, WIDTH - 4, HEIGHT - PLAY_ZONE_BOTTOM - 4);
+    }
+};
 
-    // === PAINEL DE COMANDO (ZONA RESERVADA) ===
-    ctx.save();
-    // Divisória
-    ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 2; ctx.shadowBlur = 10; ctx.shadowColor = '#00ffff';
-    ctx.beginPath(); ctx.moveTo(0, PLAY_ZONE_BOTTOM); ctx.lineTo(WIDTH, PLAY_ZONE_BOTTOM); ctx.stroke();
-    
-    // Fundo do Painel
-    ctx.fillStyle = 'rgba(10, 5, 20, 0.9)';
-    ctx.fillRect(2, PLAY_ZONE_BOTTOM, WIDTH - 4, HEIGHT - PLAY_ZONE_BOTTOM - 4);
+const drawEditor = () => {
+    drawBackground();
     
     // Visualização dos Botões de Flipper (Mobile/Editor)
     ctx.shadowBlur = 15; ctx.shadowColor = '#ff00ff';
@@ -910,18 +952,25 @@ const drawEditor = () => {
 
 const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
     if (c.type === 'pin') {
-        ctx.fillStyle = '#fff'; 
-        ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 2;
-        ctx.shadowBlur = 8; ctx.shadowColor = '#00ffff';
-        ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        if (activeTheme === 'retro') {
+            // Prego clássico de bronze/latão dourado com aro escuro
+            ctx.fillStyle = '#d4af37'; 
+            ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        } else {
+            ctx.fillStyle = '#fff'; 
+            ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 2;
+            ctx.shadowBlur = 8; ctx.shadowColor = '#00ffff';
+            ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        }
     } else if (c.type === 'prego') {
         const isActive = isPlaying ? (pregoActiveTimer > Date.now()) : true;
         if (isActive) {
             ctx.save();
             const pulse = 1 + 0.15 * Math.sin(Date.now() * 0.008);
-            ctx.strokeStyle = '#ffa500';
+            ctx.strokeStyle = activeTheme === 'retro' ? '#d4af37' : '#ffa500';
             ctx.lineWidth = 2;
-            ctx.shadowBlur = 15;
+            ctx.shadowBlur = activeTheme === 'retro' ? 0 : 15;
             ctx.shadowColor = '#ffa500';
             ctx.setLineDash([4, 4]);
             ctx.beginPath();
@@ -929,7 +978,7 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             ctx.stroke();
             ctx.setLineDash([]);
             
-            ctx.fillStyle = '#ffeb3b';
+            ctx.fillStyle = activeTheme === 'retro' ? '#ffca28' : '#ffeb3b';
             ctx.beginPath();
             ctx.arc(0, 0, 6, 0, Math.PI * 2);
             ctx.fill();
@@ -944,14 +993,14 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             ctx.restore();
         } else if (!isPlaying) {
             ctx.save();
-            ctx.strokeStyle = 'rgba(255, 165, 0, 0.4)';
+            ctx.strokeStyle = activeTheme === 'retro' ? 'rgba(212, 175, 55, 0.4)' : 'rgba(255, 165, 0, 0.4)';
             ctx.lineWidth = 1.5;
             ctx.setLineDash([3, 3]);
             ctx.beginPath();
             ctx.arc(0, 0, 15, 0, Math.PI * 2);
             ctx.stroke();
             
-            ctx.fillStyle = 'rgba(255, 235, 59, 0.3)';
+            ctx.fillStyle = activeTheme === 'retro' ? 'rgba(255, 202, 40, 0.3)' : 'rgba(255, 235, 59, 0.3)';
             ctx.beginPath();
             ctx.arc(0, 0, 6, 0, Math.PI * 2);
             ctx.fill();
@@ -962,27 +1011,69 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         const isTri = c.type.startsWith('bumper-t');
         const radius = c.type === 'bumper-s' ? 20 : (c.type === 'bumper-l' ? 35 : (isLarge ? 50 : 30));
         
-        ctx.fillStyle = extraData.hit ? '#fff' : '#00ffff';
-        ctx.shadowBlur = extraData.hit ? 30 : 15; ctx.shadowColor = '#00ffff';
-        
-        if (isTri) {
-            const w = isLarge ? 43.3 : 26; const h = isLarge ? 25 : 15;
-            ctx.beginPath(); ctx.moveTo(0, -radius); ctx.lineTo(w, h); ctx.lineTo(-w, h); ctx.closePath(); ctx.fill();
+        if (activeTheme === 'retro') {
+            // Tampa branca de bumper retro clássico (Williams/Gottlieb) com estrela vermelha!
+            ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 2.5;
+            ctx.beginPath();
+            if (isTri) {
+                const w = isLarge ? 43.3 : 26; const h = isLarge ? 25 : 15;
+                ctx.moveTo(0, -radius); ctx.lineTo(w, h); ctx.lineTo(-w, h); ctx.closePath();
+            } else {
+                ctx.arc(0, 0, radius, 0, Math.PI*2);
+            }
+            ctx.fill(); ctx.stroke();
+            
+            // Anel dourado/metalizado interior de impacto
+            ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 2;
+            ctx.beginPath();
+            if (isTri) {
+                const w = isLarge ? 30 : 18; const h = isLarge ? 17 : 10;
+                ctx.moveTo(0, -radius * 0.7); ctx.lineTo(w, h); ctx.lineTo(-w, h); ctx.closePath();
+            } else {
+                ctx.arc(0, 0, radius * 0.7, 0, Math.PI*2);
+            }
+            ctx.stroke();
+            
+            // Estrela central vermelha retro de alta definição
+            ctx.fillStyle = extraData.hit ? '#ff3d00' : '#b71c1c';
+            ctx.beginPath();
+            const pointsCount = 5;
+            for (let i = 0; i < pointsCount; i++) {
+                const angle = (i * 2 * Math.PI) / pointsCount - Math.PI / 2;
+                const rOuter = radius * 0.38;
+                const rInner = radius * 0.16;
+                ctx.lineTo(Math.cos(angle) * rOuter, Math.sin(angle) * rOuter);
+                const nextAngle = angle + Math.PI / pointsCount;
+                ctx.lineTo(Math.cos(nextAngle) * rInner, Math.sin(nextAngle) * rInner);
+            }
+            ctx.closePath(); ctx.fill();
         } else {
-            ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = extraData.hit ? '#fff' : '#00ffff';
+            ctx.shadowBlur = extraData.hit ? 30 : 15; ctx.shadowColor = '#00ffff';
+            
+            if (isTri) {
+                const w = isLarge ? 43.3 : 26; const h = isLarge ? 25 : 15;
+                ctx.beginPath(); ctx.moveTo(0, -radius); ctx.lineTo(w, h); ctx.lineTo(-w, h); ctx.closePath(); ctx.fill();
+            } else {
+                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+            }
+            ctx.fillStyle = '#fff'; ctx.shadowBlur = 0; ctx.beginPath(); ctx.arc(0, 0, radius * 0.4, 0, Math.PI*2); ctx.fill();
         }
-        ctx.fillStyle = '#fff'; ctx.shadowBlur = 0; ctx.beginPath(); ctx.arc(0, 0, radius * 0.4, 0, Math.PI*2); ctx.fill();
     } else if (c.type.startsWith('flipper')) {
         const isSmall = c.type.includes('-s-');
         const length = isSmall ? 75 : 100;
         const isRight = c.type.endsWith('-r') || (c.type === 'flipper' && Math.cos(c.angle || 0) < 0);
         
-        ctx.fillStyle = extraData.hit ? '#fff' : '#ff00ff'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
-        ctx.shadowBlur = 15; ctx.shadowColor = '#ff00ff';
+        if (activeTheme === 'retro') {
+            // Corpo do flipper clássico em plástico amarelo brilhante
+            ctx.fillStyle = '#ffca28'; ctx.strokeStyle = '#d32f2f'; ctx.lineWidth = 4.5; // Borracha vermelha retro espessa!
+        } else {
+            ctx.fillStyle = extraData.hit ? '#fff' : '#ff00ff'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
+            ctx.shadowBlur = 15; ctx.shadowColor = '#ff00ff';
+        }
         
         const r1 = 14; // Raio na base
         const r2 = 7;  // Raio na ponta
-        const l = length - r1 - r2; // Comprimento efetivo entre centros dos círculos
         
         ctx.beginPath();
         if (!isRight) {
@@ -999,11 +1090,24 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             ctx.lineTo(0, -r1);
         }
         ctx.closePath(); ctx.fill(); ctx.stroke();
+        
+        if (activeTheme === 'retro') {
+            // Adicionar tampa metálica clássica central sobre o eixo de rotação
+            ctx.fillStyle = '#cfd8dc'; ctx.strokeStyle = '#37474f'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        }
     } else if (c.type === 'wall' || c.type === 'wall-b') {
-        ctx.fillStyle = c.type === 'wall-b' ? '#00ffff' : '#110520';
-        ctx.shadowBlur = c.type === 'wall-b' ? 15 : 10; ctx.shadowColor = c.type === 'wall-b' ? '#00ffff' : '#ff00ff';
-        ctx.beginPath(); ctx.roundRect(-(c.w/2), -3, c.w, 6, 2); ctx.fill();
-        ctx.strokeStyle = c.type === 'wall-b' ? '#fff' : '#ff00ff'; ctx.lineWidth = 2; ctx.stroke();
+        if (activeTheme === 'retro') {
+            // Calha de madeira de carvalho escuro com friso metálico dourado
+            ctx.fillStyle = '#3e2723'; 
+            ctx.beginPath(); ctx.roundRect(-(c.w/2), -3, c.w, 6, 2); ctx.fill();
+            ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 1.5; ctx.stroke();
+        } else {
+            ctx.fillStyle = c.type === 'wall-b' ? '#00ffff' : '#110520';
+            ctx.shadowBlur = c.type === 'wall-b' ? 15 : 10; ctx.shadowColor = c.type === 'wall-b' ? '#00ffff' : '#ff00ff';
+            ctx.beginPath(); ctx.roundRect(-(c.w/2), -3, c.w, 6, 2); ctx.fill();
+            ctx.strokeStyle = c.type === 'wall-b' ? '#fff' : '#ff00ff'; ctx.lineWidth = 2; ctx.stroke();
+        }
     } else if (c.type === 'target' || c.type === 'target-p') {
         const isPerm = c.type === 'target-p';
         ctx.fillStyle = isPerm ? '#ffeb3b' : '#ff00ff'; ctx.strokeStyle = isPerm ? '#e91e63' : '#00ffff'; ctx.lineWidth = 2;
@@ -1986,19 +2090,7 @@ const runGameSimulation = (isWarping = false) => {
         }
         
         // Desenhar
-        ctx.clearRect(0, 0, WIDTH, HEIGHT);
-        
-        // Desenhar Moldura Geral (Jogo Ativo)
-        ctx.save();
-        ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 4;
-        ctx.shadowBlur = 15; ctx.shadowColor = '#00ffff';
-        ctx.strokeRect(2, 2, WIDTH - 4, HEIGHT - 4);
-        ctx.restore();
-
-        // Zona Display (Painel de Comando)
-        ctx.save();
-        ctx.fillStyle = 'rgba(5, 2, 10, 0.95)'; ctx.fillRect(2, PLAY_ZONE_BOTTOM, WIDTH - 4, HEIGHT - PLAY_ZONE_BOTTOM - 4);
-        ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 2; ctx.beginPath(); ctx.moveTo(0, PLAY_ZONE_BOTTOM); ctx.lineTo(WIDTH, PLAY_ZONE_BOTTOM); ctx.stroke();
+        drawBackground();
         
         // Desenhar botões (feedback visual no jogo)
         ctx.shadowBlur = 10; ctx.shadowColor = '#ff00ff';
@@ -2654,6 +2746,21 @@ document.getElementById('btn-sound-toggle')?.addEventListener('click', () => {
         btn.title = isSoundEnabled ? "Desligar Som" : "Ligar Som";
     }
     showDisplayMessage(isSoundEnabled ? "🔊 SOM ATIVADO" : "🔇 SOM DESATIVADO", "#00ffff", 1000);
+});
+
+document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
+    activeTheme = activeTheme === 'neon' ? 'retro' : 'neon';
+    const btn = document.getElementById('btn-theme-toggle');
+    if (btn) {
+        btn.innerText = activeTheme === 'neon' ? "💎 NÉON" : "🪵 CLÁSSICO";
+    }
+    sounds.playFlipper();
+    showDisplayMessage(activeTheme === 'neon' ? "💎 TEMA NÉON ACTIVADO" : "🪵 TEMA CLÁSSICO ACTIVADO", activeTheme === 'neon' ? "#00ffff" : "#d4af37", 1200);
+    
+    // Forçar redesenho imediato do editor ou da simulação ativa
+    if (!isPlaying) {
+        drawEditor();
+    }
 });
 
 document.getElementById('btn-nudge')?.addEventListener('click', () => {
