@@ -2577,9 +2577,31 @@ document.getElementById('btn-nudge')?.addEventListener('click', () => {
 });
 
 document.getElementById('btn-fullscreen')?.addEventListener('click', () => {
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+    const appEl = document.getElementById('app');
+    const btn = document.getElementById('btn-fullscreen');
+    
+    // Se for iOS ou se requestFullscreen não for suportado, usamos a simulação de CSS!
+    if (isIOS || !document.documentElement.requestFullscreen) {
+        if (appEl) {
+            const isActive = appEl.classList.toggle('ios-fullscreen');
+            if (btn) {
+                btn.innerText = isActive ? "📺" : "📱";
+                btn.title = isActive ? "Sair de Ecrã Inteiro" : "Ecrã Inteiro";
+            }
+            window.dispatchEvent(new Event('resize'));
+        }
+        return;
+    }
+
     if (!document.fullscreenElement) {
         document.documentElement.requestFullscreen().catch((err) => {
-            console.log(`Erro ao ativar ecrã inteiro: ${err.message}`);
+            if (appEl) {
+                const isActive = appEl.classList.toggle('ios-fullscreen');
+                if (btn) {
+                    btn.innerText = isActive ? "📺" : "📱";
+                }
+            }
         });
     } else {
         document.exitFullscreen();
@@ -2588,9 +2610,13 @@ document.getElementById('btn-fullscreen')?.addEventListener('click', () => {
 
 document.addEventListener('fullscreenchange', () => {
     const btn = document.getElementById('btn-fullscreen');
+    const appEl = document.getElementById('app');
     if (btn) {
         btn.innerText = document.fullscreenElement ? "📺" : "📱";
         btn.title = document.fullscreenElement ? "Sair de Ecrã Inteiro" : "Ecrã Inteiro";
+    }
+    if (!document.fullscreenElement) {
+        appEl?.classList.remove('ios-fullscreen');
     }
 });
 

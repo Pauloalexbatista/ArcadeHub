@@ -846,3 +846,28 @@ button:hover { opacity: 0.8; }
     box-shadow: 0 0 10px rgba(255, 0, 85, 0.1);
 }
 
+/* SIMULAÇÃO DE ECRÃ INTEIRO PARA APPLE/IOS */
+.ios-fullscreen {
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    width: 100vw !important;
+    height: 100vh !important;
+    z-index: 999999 !important;
+    background: #05020a !important;
+    display: flex !important;
+    flex-direction: column !important;
+    align-items: center !important;
+    justify-content: center !important;
+    box-sizing: border-box !important;
+    padding: 10px !important;
+}
+
+.ios-fullscreen #canvas-wrapper {
+    width: 100% !important;
+    max-width: min(440px, 96vw) !important;
+    max-height: calc(100vh - 100px) !important;
+    height: auto !important;
+    aspect-ratio: 440 / 840 !important;
+}
+
