@@ -1267,6 +1267,10 @@ const launchBall = () => {
 
 const runGameSimulation = (isWarping = false) => {
     if (animationId) cancelAnimationFrame(animationId);
+    if (matrixInterval) {
+        clearInterval(matrixInterval);
+        matrixInterval = null;
+    }
     isPlaying = true;
     keysPressed.clear(); // Limpar teclas fantasmas
     switchTab('game');
@@ -2968,6 +2972,11 @@ const initArcadeHubNavigation = () => {
         hubScreen?.classList.add('hidden');
         appEl?.classList.remove('hidden');
         
+        if (matrixInterval) {
+            clearInterval(matrixInterval);
+            matrixInterval = null;
+        }
+        
         sounds.playScoreMilestone();
         runGameSimulation();
         document.getElementById('sidebar')?.classList.add('hidden-mobile');
@@ -2976,6 +2985,11 @@ const initArcadeHubNavigation = () => {
     document.getElementById('hub-btn-open-workshop')?.addEventListener('click', () => {
         hubScreen?.classList.add('hidden');
         appEl?.classList.remove('hidden');
+        
+        if (matrixInterval) {
+            clearInterval(matrixInterval);
+            matrixInterval = null;
+        }
         
         sounds.playTarget();
         document.getElementById('sidebar')?.classList.remove('hidden-mobile');
