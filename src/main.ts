@@ -2562,6 +2562,12 @@ document.getElementById('modal-btn-exit')?.addEventListener('click', () => {
     switchTab('workshop');
 });
 
+document.getElementById('modal-btn-hub')?.addEventListener('click', () => {
+    document.getElementById('highscore-modal')?.classList.add('hidden');
+    document.getElementById('app')?.classList.add('hidden');
+    document.getElementById('hub-screen')?.classList.remove('hidden');
+});
+
 // Inicialização
 window.addEventListener('load', () => {
     updateHighscoreTableList();
@@ -2663,10 +2669,8 @@ document.addEventListener('fullscreenchange', () => {
 
 document.getElementById('btn-reset-ball')?.addEventListener('click', () => {
     stopSimulation();
-    
-    // Esconder o jogo e mostrar o seletor de jogos em split-screen!
-    document.getElementById('app')?.classList.add('hidden');
-    document.getElementById('hub-screen')?.classList.remove('hidden');
+    showHighscoreModal("BEM-VINDO");
+    document.getElementById('settings-dropdown')?.classList.add('hidden'); // auto-close
 });
 
 document.getElementById('modal-table-select')?.addEventListener('change', async (e) => {
@@ -3004,7 +3008,8 @@ const initArcadeHubNavigation = () => {
         }
         
         sounds.playScoreMilestone();
-        runGameSimulation();
+        // Mostrar o menu de boas-vindas para selecionar a mesa e ver recordes!
+        showHighscoreModal("BEM-VINDO");
         document.getElementById('sidebar')?.classList.add('hidden-mobile');
     });
     
