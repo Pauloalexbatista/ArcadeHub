@@ -2968,20 +2968,51 @@ document.getElementById('btn-sound-toggle')?.addEventListener('click', () => {
     showDisplayMessage(isSoundEnabled ? "🔊 SOM ATIVADO" : "🔇 SOM DESATIVADO", "#00ffff", 1000);
 });
 
-document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
-    activeTheme = activeTheme === 'neon' ? 'retro' : 'neon';
-    document.body.classList.toggle('retro-theme', activeTheme === 'retro');
+const setTheme = (theme: 'neon' | 'retro') => {
+    activeTheme = theme;
+    document.body.classList.toggle('retro-theme', theme === 'retro');
+    
     const btn = document.getElementById('btn-theme-toggle');
     if (btn) {
-        btn.innerText = activeTheme === 'neon' ? "💎 NÉON" : "🪵 CLÁSSICO";
+        btn.innerText = theme === 'neon' ? "💎 NÉON" : "🪵 CLÁSSICO";
     }
+    
+    // Sincronizar botões do painel do criador (sidebar)
+    const btnNeon = document.getElementById('btn-theme-neon');
+    const btnClassic = document.getElementById('btn-theme-classic');
+    if (btnNeon && btnClassic) {
+        if (theme === 'neon') {
+            btnNeon.style.background = '#00ffff';
+            btnNeon.style.color = '#110520';
+            btnClassic.style.background = 'transparent';
+            btnClassic.style.color = '#d4af37';
+        } else {
+            btnNeon.style.background = 'transparent';
+            btnNeon.style.color = '#00ffff';
+            btnClassic.style.background = '#d4af37';
+            btnClassic.style.color = '#3e2723';
+        }
+    }
+    
     sounds.playFlipper();
-    showDisplayMessage(activeTheme === 'neon' ? "💎 TEMA NÉON ACTIVADO" : "🪵 TEMA CLÁSSICO ACTIVADO", activeTheme === 'neon' ? "#00ffff" : "#d4af37", 1200);
+    showDisplayMessage(theme === 'neon' ? "💎 TEMA NÉON ACTIVADO" : "🪵 TEMA CLÁSSICO ACTIVADO", theme === 'neon' ? "#00ffff" : "#d4af37", 1200);
     
     // Forçar redesenho imediato do editor ou da simulação ativa
     if (!isPlaying) {
         drawEditor();
     }
+};
+
+document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
+    setTheme(activeTheme === 'neon' ? 'retro' : 'neon');
+});
+
+document.getElementById('btn-theme-neon')?.addEventListener('click', () => {
+    setTheme('neon');
+});
+
+document.getElementById('btn-theme-classic')?.addEventListener('click', () => {
+    setTheme('retro');
 });
 
 document.getElementById('btn-nudge')?.addEventListener('click', () => {
