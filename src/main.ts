@@ -775,12 +775,12 @@ canvas.addEventListener('click', async (e) => {
 
 const drawBackground = () => {
     if (activeTheme === 'retro') {
-        // Fundo de madeira envernizada clara (Bétula/Faia natural) - Super leve e polida como a foto!
-        ctx.fillStyle = '#f4d5b7'; 
+        // Fundo de madeira envernizada dourada clássica (Pinheiro/Bétula natural) - Sem qualquer tom rosado!
+        ctx.fillStyle = '#edd5a1'; 
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         
-        // Fundo do Painel (Madeira de faia envernizada média, harmoniosa)
-        ctx.fillStyle = '#dbb18a'; 
+        // Fundo do Painel (Madeira de carvalho média envernizada, harmoniosa)
+        ctx.fillStyle = '#ba9261'; 
         ctx.fillRect(0, PLAY_ZONE_BOTTOM, WIDTH, HEIGHT - PLAY_ZONE_BOTTOM);
         
         // Molduras clássicas de madeira de carvalho escuro (Castanho escuro) e latão dourado polido
@@ -2301,8 +2301,9 @@ const runGameSimulation = (isWarping = false) => {
 
         const now = Date.now();
         if (displayMessage && now < displayMessageTimer) {
-            ctx.font = 'bold 18px Orbitron'; ctx.textAlign = 'center'; ctx.fillStyle = displayMessageColor;
-            ctx.shadowBlur = 10; ctx.shadowColor = displayMessageColor;
+            ctx.font = 'bold 18px Orbitron'; ctx.textAlign = 'center';
+            ctx.fillStyle = activeTheme === 'retro' ? '#3e2723' : displayMessageColor;
+            ctx.shadowBlur = activeTheme === 'retro' ? 0 : 10; ctx.shadowColor = displayMessageColor;
             
             // Suporte para 2 linhas (se houver '\n' ou se for longa)
             const parts = displayMessage.split('\n');
