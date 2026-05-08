@@ -779,35 +779,15 @@ const drawBackground = () => {
         ctx.fillStyle = '#f4d5b7'; 
         ctx.fillRect(0, 0, WIDTH, HEIGHT);
         
-        // Desenhar veios de madeira procedimentais suaves (tom tan dourado suave)
-        ctx.strokeStyle = '#cca17b';
-        ctx.lineWidth = 1.0;
-        for (let y = -20; y < PLAY_ZONE_BOTTOM; y += 25) {
-            ctx.beginPath();
-            ctx.moveTo(0, y + Math.sin(y * 0.05) * 12);
-            ctx.bezierCurveTo(WIDTH / 3, y - 8, 2 * WIDTH / 3, y + 16, WIDTH, y + Math.cos(y * 0.05) * 12);
-            ctx.stroke();
-        }
-        
-        // Linhas verticais subtis de grão de madeira
-        ctx.strokeStyle = '#e6be9a';
-        ctx.lineWidth = 0.5;
-        for (let x = 20; x < WIDTH; x += 40) {
-            ctx.beginPath();
-            ctx.moveTo(x + Math.sin(x) * 8, 0);
-            ctx.lineTo(x + Math.cos(x) * 8, PLAY_ZONE_BOTTOM);
-            ctx.stroke();
-        }
-        
         // Fundo do Painel (Madeira de faia envernizada média, harmoniosa)
         ctx.fillStyle = '#dbb18a'; 
         ctx.fillRect(0, PLAY_ZONE_BOTTOM, WIDTH, HEIGHT - PLAY_ZONE_BOTTOM);
         
-        // Molduras clássicas de carvalho médio e latão dourado polido
-        ctx.strokeStyle = '#a87a53'; ctx.lineWidth = 6;
-        ctx.strokeRect(3, 3, WIDTH - 6, HEIGHT - 6);
+        // Molduras clássicas de madeira de carvalho escuro (Castanho escuro) e latão dourado polido
+        ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 8;
+        ctx.strokeRect(4, 4, WIDTH - 8, HEIGHT - 8);
         ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 2; // Latão dourado
-        ctx.strokeRect(6, 6, WIDTH - 12, HEIGHT - 12);
+        ctx.strokeRect(8, 8, WIDTH - 16, HEIGHT - 16);
         
         // Divisória de latão
         ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 3;
@@ -884,32 +864,48 @@ const drawEditor = () => {
     components.forEach(c => {
         if (c.p0 && (c.p4 || c.p2)) {
             ctx.save();
-            ctx.strokeStyle = c.type === 'wall-b' ? '#00ffff' : '#ff00ff';
-            ctx.lineWidth = 6;
-            ctx.lineCap = 'round';
-            ctx.shadowBlur = c.type === 'wall-b' ? 15 : 10;
-            ctx.shadowColor = ctx.strokeStyle;
-            
-            // Desenhar Curva Segmentada de Alta Precisão (Compatível com 3 e 5 pontos!)
-            ctx.beginPath();
-            const startPt = getBezierPoint(c, 0);
-            ctx.moveTo(startPt.x, startPt.y);
-            for (let i = 1; i <= 20; i++) {
-                const pt = getBezierPoint(c, i / 20);
-                ctx.lineTo(pt.x, pt.y);
+            if (activeTheme === 'retro') {
+                ctx.strokeStyle = c.type === 'wall-b' ? '#1976d2' : '#d32f2f'; // Elásticos vermelhos (ou azul para wall-b) sólidos sem brilho!
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.shadowBlur = 0;
+                
+                ctx.beginPath();
+                const startPt = getBezierPoint(c, 0);
+                ctx.moveTo(startPt.x, startPt.y);
+                for (let i = 1; i <= 20; i++) {
+                    const pt = getBezierPoint(c, i / 20);
+                    ctx.lineTo(pt.x, pt.y);
+                }
+                ctx.stroke();
+            } else {
+                ctx.strokeStyle = c.type === 'wall-b' ? '#00ffff' : '#ff00ff';
+                ctx.lineWidth = 6;
+                ctx.lineCap = 'round';
+                ctx.shadowBlur = c.type === 'wall-b' ? 15 : 10;
+                ctx.shadowColor = ctx.strokeStyle;
+                
+                // Desenhar Curva Segmentada de Alta Precisão (Compatível com 3 e 5 pontos!)
+                ctx.beginPath();
+                const startPt = getBezierPoint(c, 0);
+                ctx.moveTo(startPt.x, startPt.y);
+                for (let i = 1; i <= 20; i++) {
+                    const pt = getBezierPoint(c, i / 20);
+                    ctx.lineTo(pt.x, pt.y);
+                }
+                ctx.stroke();
+                
+                // Linha interna de brilho
+                ctx.strokeStyle = '#fff';
+                ctx.lineWidth = 2;
+                ctx.beginPath();
+                ctx.moveTo(startPt.x, startPt.y);
+                for (let i = 1; i <= 20; i++) {
+                    const pt = getBezierPoint(c, i / 20);
+                    ctx.lineTo(pt.x, pt.y);
+                }
+                ctx.stroke();
             }
-            ctx.stroke();
-            
-            // Linha interna de brilho
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(startPt.x, startPt.y);
-            for (let i = 1; i <= 20; i++) {
-                const pt = getBezierPoint(c, i / 20);
-                ctx.lineTo(pt.x, pt.y);
-            }
-            ctx.stroke();
             
             // PONTOS DE CONTROLO (Apenas no Editor)
             if (!isPlaying) {
@@ -1114,16 +1110,24 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             }
             ctx.closePath(); ctx.fill();
         } else {
-            ctx.fillStyle = extraData.hit ? '#fff' : '#00ffff';
-            ctx.shadowBlur = extraData.hit ? 30 : 15; ctx.shadowColor = '#00ffff';
+            // No tema néon: o bumper só emite luz própria (shadowBlur e tom branco) quando é batido!
+            ctx.fillStyle = extraData.hit ? '#ffffff' : 'rgba(0, 255, 255, 0.35)';
+            ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 2.5;
+            if (extraData.hit) {
+                ctx.shadowBlur = 25; ctx.shadowColor = '#00ffff';
+            } else {
+                ctx.shadowBlur = 0;
+            }
             
             if (isTri) {
                 const w = isLarge ? 43.3 : 26; const h = isLarge ? 25 : 15;
-                ctx.beginPath(); ctx.moveTo(0, -radius); ctx.lineTo(w, h); ctx.lineTo(-w, h); ctx.closePath(); ctx.fill();
+                ctx.beginPath(); ctx.moveTo(0, -radius); ctx.lineTo(w, h); ctx.lineTo(-w, h); ctx.closePath(); ctx.fill(); ctx.stroke();
             } else {
-                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill();
+                ctx.beginPath(); ctx.arc(0, 0, radius, 0, Math.PI*2); ctx.fill(); ctx.stroke();
             }
-            ctx.fillStyle = '#fff'; ctx.shadowBlur = 0; ctx.beginPath(); ctx.arc(0, 0, radius * 0.4, 0, Math.PI*2); ctx.fill();
+            ctx.fillStyle = extraData.hit ? '#fff' : 'rgba(0, 255, 255, 0.15)'; 
+            ctx.shadowBlur = 0; 
+            ctx.beginPath(); ctx.arc(0, 0, radius * 0.4, 0, Math.PI*2); ctx.fill();
         }
     } else if (c.type.startsWith('flipper')) {
         const isSmall = c.type.includes('-s-');
@@ -1260,15 +1264,24 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             const isOn = isPlaying ? !isSpinning : true;
             
             if (activeTheme === 'retro') {
+                const isRedGroup = colIdx === 0;
+                const isBlueGroup = colIdx === 1;
+                const isGreenGroup = colIdx === 2;
+                
                 if (isOn) {
-                    ctx.fillStyle = '#ffca28'; ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 2;
-                    ctx.shadowBlur = 12; ctx.shadowColor = '#ffca28';
+                    ctx.fillStyle = isRedGroup ? '#ff1744' : (isBlueGroup ? '#29b6f6' : (isGreenGroup ? '#66bb6a' : '#ffca28'));
+                    ctx.strokeStyle = isRedGroup ? '#b71c1c' : (isBlueGroup ? '#0288d1' : (isGreenGroup ? '#2e7d32' : '#f57f17'));
+                    ctx.lineWidth = 2;
+                    ctx.shadowBlur = 10;
+                    ctx.shadowColor = ctx.fillStyle;
                 } else {
-                    ctx.fillStyle = '#e0e0e0'; ctx.strokeStyle = '#90a4ae'; ctx.lineWidth = 1.5;
+                    ctx.fillStyle = isRedGroup ? '#ff8a80' : (isBlueGroup ? '#b3e5fc' : (isGreenGroup ? '#c8e6c9' : '#fff9c4'));
+                    ctx.strokeStyle = isRedGroup ? '#b71c1c' : (isBlueGroup ? '#0288d1' : (isGreenGroup ? '#2e7d32' : '#f57f17'));
+                    ctx.lineWidth = 1.5;
                     ctx.shadowBlur = 0;
                 }
                 ctx.beginPath(); ctx.arc(0, 0, 8, 0, Math.PI*2); ctx.fill(); ctx.stroke();
-                ctx.fillStyle = isOn ? '#fff' : '#b0bec5';
+                ctx.fillStyle = isOn ? '#fff' : 'rgba(255,255,255,0.4)';
                 ctx.shadowBlur = 0;
                 ctx.beginPath(); ctx.arc(0, 0, 2.5, 0, Math.PI*2); ctx.fill();
             } else {
@@ -1288,19 +1301,26 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         const isOn = isPlaying ? extraData.active : false;
         
         if (activeTheme === 'retro') {
+            const isRed = c.type === 'light-r';
+            const isBlue = c.type === 'light-b';
+            const isYellow = c.type === 'light-y';
+            
             if (isOn) {
-                // Lâmpada incandescente acesa (Brilho âmbar quente)
-                ctx.fillStyle = '#ffca28'; ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 2.5;
-                ctx.shadowBlur = 15; ctx.shadowColor = '#ffca28';
+                ctx.fillStyle = isRed ? '#ff1744' : (isBlue ? '#29b6f6' : (isYellow ? '#ffca28' : '#66bb6a'));
+                ctx.strokeStyle = isRed ? '#b71c1c' : (isBlue ? '#0288d1' : (isYellow ? '#f57f17' : '#2e7d32'));
+                ctx.lineWidth = 2.5;
+                ctx.shadowBlur = 12;
+                ctx.shadowColor = ctx.fillStyle;
             } else {
-                // Lâmpada apagada (Cúpula neutra sem brilho!)
-                ctx.fillStyle = '#e0e0e0'; ctx.strokeStyle = '#90a4ae'; ctx.lineWidth = 2;
+                ctx.fillStyle = isRed ? '#ff8a80' : (isBlue ? '#b3e5fc' : (isYellow ? '#fff9c4' : '#c8e6c9'));
+                ctx.strokeStyle = isRed ? '#b71c1c' : (isBlue ? '#0288d1' : (isYellow ? '#f57f17' : '#2e7d32'));
+                ctx.lineWidth = 2;
                 ctx.shadowBlur = 0;
             }
             ctx.beginPath(); ctx.arc(0, 0, 12, 0, Math.PI*2); ctx.fill(); ctx.stroke();
             
             // Filamento interno da lâmpada
-            ctx.fillStyle = isOn ? '#fff' : '#b0bec5'; ctx.shadowBlur = 0;
+            ctx.fillStyle = isOn ? '#fff' : 'rgba(255,255,255,0.4)'; ctx.shadowBlur = 0;
             ctx.beginPath(); ctx.arc(0, 0, 4, 0, Math.PI*2); ctx.fill();
         } else {
             const isGreen = c.type === 'light' || c.type === 'light-g';
@@ -1343,6 +1363,13 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         const isGateOpen = isPlaying ? extraData.active : false;
         
         if (activeTheme === 'retro') {
+            // Pintar o fundo dentro da caixa com a cor correspondente em mate (sem neon/brilhos)
+            const mateColor = c.type === 'hole-g' ? '#388e3c' : (c.type === 'hole-r' ? '#d32f2f' : (c.type === 'hole-b' ? '#1976d2' : '#fbc02d'));
+            ctx.fillStyle = mateColor;
+            ctx.beginPath();
+            ctx.roundRect(-24, -24, 48, 48, 4);
+            ctx.fill();
+
             // Desenhar caixa U protetora em madeira sólida clássica (Nogueira escura)
             ctx.strokeStyle = '#3e2723';
             ctx.lineWidth = 5;
@@ -1365,8 +1392,8 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
                 ctx.stroke();
             }
             
-            // Buraco interior centrado em (0, 0) - Tom escuro de buraco de madeira real
-            ctx.fillStyle = '#1c0d02';
+            // Buraco interior centrado em (0, 0) - Fica a preto puro!
+            ctx.fillStyle = '#000000';
             ctx.beginPath();
             ctx.arc(0, 0, 14, 0, Math.PI * 2);
             ctx.fill();
@@ -2294,34 +2321,53 @@ const runGameSimulation = (isWarping = false) => {
         components.forEach(c => {
             if (c.p0 && (c.p4 || c.p2)) {
                 ctx.save();
-                ctx.strokeStyle = c.type === 'wall-b' ? '#00ffff' : '#ff00ff';
-                if (now < (c.hitTimer || 0)) {
+                if (activeTheme === 'retro') {
+                    ctx.strokeStyle = c.type === 'wall-b' ? '#1976d2' : '#d32f2f'; // Elásticos vermelhos (ou azul para wall-b) sólidos sem brilho!
+                    if (now < (c.hitTimer || 0)) {
+                        ctx.strokeStyle = '#ff8a80'; // Feedback suave ao bater
+                    }
+                    ctx.lineWidth = 6;
+                    ctx.lineCap = 'round';
+                    ctx.shadowBlur = 0;
+                    
+                    ctx.beginPath();
+                    const startPt = getBezierPoint(c, 0);
+                    ctx.moveTo(startPt.x, startPt.y);
+                    for (let i = 1; i <= 20; i++) {
+                        const pt = getBezierPoint(c, i / 20);
+                        ctx.lineTo(pt.x, pt.y);
+                    }
+                    ctx.stroke();
+                } else {
+                    ctx.strokeStyle = c.type === 'wall-b' ? '#00ffff' : '#ff00ff';
+                    if (now < (c.hitTimer || 0)) {
+                        ctx.strokeStyle = '#fff';
+                    }
+                    ctx.lineWidth = 6;
+                    ctx.lineCap = 'round';
+                    ctx.shadowBlur = c.type === 'wall-b' ? 15 : 10;
+                    ctx.shadowColor = ctx.strokeStyle;
+                    
+                    ctx.beginPath();
+                    const startPt = getBezierPoint(c, 0);
+                    ctx.moveTo(startPt.x, startPt.y);
+                    for (let i = 1; i <= 20; i++) {
+                        const pt = getBezierPoint(c, i / 20);
+                        ctx.lineTo(pt.x, pt.y);
+                    }
+                    ctx.stroke();
+                    
+                    // Linha interna de brilho
                     ctx.strokeStyle = '#fff';
+                    ctx.lineWidth = 2;
+                    ctx.beginPath();
+                    ctx.moveTo(startPt.x, startPt.y);
+                    for (let i = 1; i <= 20; i++) {
+                        const pt = getBezierPoint(c, i / 20);
+                        ctx.lineTo(pt.x, pt.y);
+                    }
+                    ctx.stroke();
                 }
-                ctx.lineWidth = 6;
-                ctx.lineCap = 'round';
-                ctx.shadowBlur = c.type === 'wall-b' ? 15 : 10;
-                ctx.shadowColor = ctx.strokeStyle;
-                
-                ctx.beginPath();
-                const startPt = getBezierPoint(c, 0);
-                ctx.moveTo(startPt.x, startPt.y);
-                for (let i = 1; i <= 20; i++) {
-                    const pt = getBezierPoint(c, i / 20);
-                    ctx.lineTo(pt.x, pt.y);
-                }
-                ctx.stroke();
-                
-                // Linha interna de brilho
-                ctx.strokeStyle = '#fff';
-                ctx.lineWidth = 2;
-                ctx.beginPath();
-                ctx.moveTo(startPt.x, startPt.y);
-                for (let i = 1; i <= 20; i++) {
-                    const pt = getBezierPoint(c, i / 20);
-                    ctx.lineTo(pt.x, pt.y);
-                }
-                ctx.stroke();
                 ctx.restore();
             }
         });
