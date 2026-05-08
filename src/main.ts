@@ -2905,7 +2905,7 @@ const initArcadeHubNavigation = () => {
         showDisplayMessage("🏎️ A INICIAR MINI F1 RACING...", "#ff0055", 3000);
         sounds.playScoreMilestone();
         setTimeout(() => {
-            window.location.href = '/f1-racing/';
+            window.location.href = 'https://minif12026.online';
         }, 1500);
     });
     
