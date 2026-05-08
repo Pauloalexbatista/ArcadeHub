@@ -865,7 +865,7 @@ const drawEditor = () => {
         if (c.p0 && (c.p4 || c.p2)) {
             ctx.save();
             if (activeTheme === 'retro') {
-                ctx.strokeStyle = c.type === 'wall-b' ? '#1976d2' : '#d32f2f'; // Elásticos vermelhos (ou azul para wall-b) sólidos sem brilho!
+                ctx.strokeStyle = c.type === 'wall-b' ? '#111111' : '#3e2723'; // Elásticos pretos (wall-b) e paredes de madeira escura (wall)!
                 ctx.lineWidth = 6;
                 ctx.lineCap = 'round';
                 ctx.shadowBlur = 0;
@@ -1009,8 +1009,8 @@ const drawEditor = () => {
 const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
     if (c.type === 'pin') {
         if (activeTheme === 'retro') {
-            // Prego clássico de bronze/latão dourado com aro escuro
-            ctx.fillStyle = '#d4af37'; 
+            // Pregos pretos clássicos com rebordo escuro de madeira
+            ctx.fillStyle = '#111111'; 
             ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 1.5;
             ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
         } else {
@@ -1024,7 +1024,7 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         if (isActive) {
             ctx.save();
             const pulse = 1 + 0.15 * Math.sin(Date.now() * 0.008);
-            ctx.strokeStyle = activeTheme === 'retro' ? '#d4af37' : '#ffa500';
+            ctx.strokeStyle = activeTheme === 'retro' ? '#111111' : '#ffa500';
             ctx.lineWidth = 2;
             ctx.shadowBlur = activeTheme === 'retro' ? 0 : 15;
             ctx.shadowColor = '#ffa500';
@@ -1034,29 +1034,29 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             ctx.stroke();
             ctx.setLineDash([]);
             
-            ctx.fillStyle = activeTheme === 'retro' ? '#ffca28' : '#ffeb3b';
+            ctx.fillStyle = activeTheme === 'retro' ? '#111111' : '#ffeb3b';
             ctx.beginPath();
             ctx.arc(0, 0, 6, 0, Math.PI * 2);
             ctx.fill();
-            ctx.strokeStyle = '#fff';
+            ctx.strokeStyle = activeTheme === 'retro' ? '#3e2723' : '#fff';
             ctx.lineWidth = 1.5;
             ctx.stroke();
             
-            ctx.fillStyle = '#fff';
+            ctx.fillStyle = activeTheme === 'retro' ? '#cfd8dc' : '#fff';
             ctx.beginPath();
             ctx.arc(-2, -2, 1.5, 0, Math.PI * 2);
             ctx.fill();
             ctx.restore();
         } else if (!isPlaying) {
             ctx.save();
-            ctx.strokeStyle = activeTheme === 'retro' ? 'rgba(212, 175, 55, 0.4)' : 'rgba(255, 165, 0, 0.4)';
+            ctx.strokeStyle = activeTheme === 'retro' ? 'rgba(17, 17, 17, 0.4)' : 'rgba(255, 165, 0, 0.4)';
             ctx.lineWidth = 1.5;
             ctx.setLineDash([3, 3]);
             ctx.beginPath();
             ctx.arc(0, 0, 15, 0, Math.PI * 2);
             ctx.stroke();
             
-            ctx.fillStyle = activeTheme === 'retro' ? 'rgba(255, 202, 40, 0.3)' : 'rgba(255, 235, 59, 0.3)';
+            ctx.fillStyle = activeTheme === 'retro' ? 'rgba(17, 17, 17, 0.3)' : 'rgba(255, 235, 59, 0.3)';
             ctx.beginPath();
             ctx.arc(0, 0, 6, 0, Math.PI * 2);
             ctx.fill();
@@ -1135,8 +1135,8 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         const isRight = c.type.endsWith('-r') || (c.type === 'flipper' && Math.cos(c.angle || 0) < 0);
         
         if (activeTheme === 'retro') {
-            // Corpo do flipper clássico em plástico amarelo brilhante
-            ctx.fillStyle = '#ffca28'; ctx.strokeStyle = '#d32f2f'; ctx.lineWidth = 4.5; // Borracha vermelha retro espessa!
+            // Corpo do flipper clássico em plástico branco com rebordo preto espesso
+            ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#000000'; ctx.lineWidth = 4.5;
         } else {
             ctx.fillStyle = extraData.hit ? '#fff' : '#ff00ff'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
             ctx.shadowBlur = 15; ctx.shadowColor = '#ff00ff';
@@ -2320,9 +2320,9 @@ const runGameSimulation = (isWarping = false) => {
             if (c.p0 && (c.p4 || c.p2)) {
                 ctx.save();
                 if (activeTheme === 'retro') {
-                    ctx.strokeStyle = c.type === 'wall-b' ? '#1976d2' : '#d32f2f'; // Elásticos vermelhos (ou azul para wall-b) sólidos sem brilho!
+                    ctx.strokeStyle = c.type === 'wall-b' ? '#111111' : '#3e2723'; // Elásticos pretos (wall-b) e paredes de madeira (wall)!
                     if (now < (c.hitTimer || 0)) {
-                        ctx.strokeStyle = '#ff8a80'; // Feedback suave ao bater
+                        ctx.strokeStyle = c.type === 'wall-b' ? '#555555' : '#5d4037'; // Feedback suave ao bater
                     }
                     ctx.lineWidth = 6;
                     ctx.lineCap = 'round';
