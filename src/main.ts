@@ -444,8 +444,15 @@ const getGridPos = (e: MouseEvent) => {
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
     
-    const x = Math.round(((e.clientX - rect.left) * scaleX) / GRID_SIZE) * GRID_SIZE;
-    const y = Math.round(((e.clientY - rect.top) * scaleY) / GRID_SIZE) * GRID_SIZE;
+    let x = Math.round(((e.clientX - rect.left) * scaleX) / GRID_SIZE) * GRID_SIZE;
+    let y = Math.round(((e.clientY - rect.top) * scaleY) / GRID_SIZE) * GRID_SIZE;
+    
+    // Snapping especial para pinos e pregos para centrar perfeitamente no meio do quadrado (1 em 1)
+    const activeTool = draggedComponent ? draggedComponent.type : currentTool;
+    if (activeTool === 'pin' || activeTool === 'prego') {
+        x = Math.floor(((e.clientX - rect.left) * scaleX) / GRID_SIZE) * GRID_SIZE + (GRID_SIZE / 2);
+        y = Math.floor(((e.clientY - rect.top) * scaleY) / GRID_SIZE) * GRID_SIZE + (GRID_SIZE / 2);
+    }
     return { x, y };
 };
 
@@ -815,6 +822,17 @@ const drawBackground = () => {
 
 const drawEditor = () => {
     drawBackground();
+    
+    // Linha de ajuda vertical exatamente no centro da mesa (X = 220, largura total = 440)
+    ctx.save();
+    ctx.strokeStyle = activeTheme === 'retro' ? 'rgba(62, 39, 35, 0.45)' : 'rgba(0, 255, 255, 0.45)';
+    ctx.lineWidth = 2;
+    ctx.setLineDash([8, 8]);
+    ctx.beginPath();
+    ctx.moveTo(WIDTH / 2, 0);
+    ctx.lineTo(WIDTH / 2, PLAY_ZONE_BOTTOM);
+    ctx.stroke();
+    ctx.restore();
     
     // Visualização dos Botões de Flipper (Mobile/Editor)
     if (activeTheme === 'retro') {
