@@ -1282,6 +1282,15 @@ const runGameSimulation = (isWarping = false) => {
         hasSuperJackpotInThisRun = false;
         warpActive = false;
         pregoActiveTimer = 0;
+        
+        // RESET TOTAL DA MÁQUINA (Luzes, Portas e Níveis voltam ao estado inicial a 0)
+        components.forEach(c => {
+            if (c.active !== undefined) c.active = false;
+            if (c.gateOpen !== undefined) c.gateOpen = false;
+            if (c.hadBall !== undefined) c.hadBall = false;
+            if (c.trapped !== undefined) c.trapped = false;
+            if (c.level !== undefined) c.level = 0;
+        });
     }
     updateScore(0); updateBallsDisplay();
     
