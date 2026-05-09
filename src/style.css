@@ -3,8 +3,8 @@
     --sidebar-bg: #110520;
     --accent: #00ffff;
     --danger: #ff00ff;
-    --grid-color: rgba(255, 0, 255, 0.15);
-    --grid-major: rgba(0, 255, 255, 0.3);
+    --grid-color: rgba(255, 0, 255, 0.28);
+    --grid-major: rgba(0, 255, 255, 0.55);
 }
 
 @keyframes pulse {
@@ -986,8 +986,8 @@ button:hover { opacity: 0.8; }
 body.retro-theme {
     --accent: #d4af37;
     --danger: #b71c1c;
-    --grid-color: rgba(62, 39, 35, 0.04);
-    --grid-major: rgba(139, 90, 43, 0.08);
+    --grid-color: rgba(62, 39, 35, 0.14);
+    --grid-major: rgba(139, 90, 43, 0.30);
 }
 body.retro-theme #in-game-header {
     border-color: #3e2723 !important;
