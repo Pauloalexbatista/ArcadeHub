@@ -444,21 +444,8 @@ const getGridPos = (e: MouseEvent) => {
     const scaleX = canvas.width / rect.width;
     const scaleY = canvas.height / rect.height;
     
-    let x = Math.round(((e.clientX - rect.left) * scaleX) / GRID_SIZE) * GRID_SIZE;
-    let y = Math.round(((e.clientY - rect.top) * scaleY) / GRID_SIZE) * GRID_SIZE;
-    
-    // Snapping especial para pinos e pregos para centrar perfeitamente no meio do quadrado (1 em 1)
-    const activeTool = draggedComponent ? draggedComponent.type : currentTool;
-    if (activeTool === 'pin' || activeTool === 'prego') {
-        x = Math.floor(((e.clientX - rect.left) * scaleX) / GRID_SIZE) * GRID_SIZE + (GRID_SIZE / 2);
-        y = Math.floor(((e.clientY - rect.top) * scaleY) / GRID_SIZE) * GRID_SIZE + (GRID_SIZE / 2);
-    }
-    
-    // Atração magnética especial para os eixos de centro real (X = 220, Y = 360) nos pinos/pregos
-    if (activeTool === 'pin' || activeTool === 'prego') {
-        if (Math.abs(x - 220) <= 12) x = 220;
-        if (Math.abs(y - 360) <= 12) y = 360;
-    }
+    const x = Math.round(((e.clientX - rect.left) * scaleX) / GRID_SIZE) * GRID_SIZE;
+    const y = Math.round(((e.clientY - rect.top) * scaleY) / GRID_SIZE) * GRID_SIZE;
     
     return { x, y };
 };
