@@ -453,6 +453,13 @@ const getGridPos = (e: MouseEvent) => {
         x = Math.floor(((e.clientX - rect.left) * scaleX) / GRID_SIZE) * GRID_SIZE + (GRID_SIZE / 2);
         y = Math.floor(((e.clientY - rect.top) * scaleY) / GRID_SIZE) * GRID_SIZE + (GRID_SIZE / 2);
     }
+    
+    // Atração magnética especial para os eixos de centro real (X = 220, Y = 360) nos pinos/pregos
+    if (activeTool === 'pin' || activeTool === 'prego') {
+        if (Math.abs(x - 220) <= 12) x = 220;
+        if (Math.abs(y - 360) <= 12) y = 360;
+    }
+    
     return { x, y };
 };
 
