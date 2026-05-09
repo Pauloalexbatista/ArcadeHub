@@ -29,7 +29,7 @@
       "x": 200,
       "y": 700
     },
-    "hitTimer": 1778184913495
+    "hitTimer": 1778281647478
   },
   {
     "x": 320,
@@ -55,30 +55,124 @@
       "x": 200,
       "y": 700
     },
-    "hitTimer": 1778184912661
-  },
-  {
-    "x": 140,
-    "y": 400,
-    "type": "spinner",
-    "angle": 0
-  },
-  {
-    "x": 340,
-    "y": 400,
-    "type": "spinner",
-    "angle": 0
-  },
-  {
-    "x": 160,
-    "y": 160,
-    "type": "light-g4-line",
-    "angle": 0
+    "hitTimer": 1778281660860
   },
   {
     "x": 300,
     "y": 160,
+    "type": "spinner",
+    "angle": 0
+  },
+  {
+    "x": 200,
+    "y": 320,
+    "type": "spinner",
+    "angle": 0
+  },
+  {
+    "x": 120,
+    "y": 500,
+    "type": "light-g4-line",
+    "angle": 0
+  },
+  {
+    "x": 220,
+    "y": 500,
     "type": "light-g4-square",
+    "angle": 0
+  },
+  {
+    "x": 400,
+    "y": 340,
+    "type": "bumper-s",
+    "angle": 0,
+    "hitTimer": 1778281645509
+  },
+  {
+    "x": 400,
+    "y": 180,
+    "type": "bumper-l",
+    "angle": 0,
+    "hitTimer": 1778281647862
+  },
+  {
+    "x": 180,
+    "y": 240,
+    "type": "bumper-t-l",
+    "angle": 0,
+    "hitTimer": 1778281643090
+  },
+  {
+    "x": 40,
+    "y": 440,
+    "type": "bumper-t",
+    "angle": 0,
+    "hitTimer": 1778281666616
+  },
+  {
+    "x": 400,
+    "y": 380,
+    "type": "target",
+    "angle": 0
+  },
+  {
+    "x": 40,
+    "y": 40,
+    "type": "hole-r",
+    "angle": 0
+  },
+  {
+    "x": 100,
+    "y": 40,
+    "type": "hole-g",
+    "angle": 0
+  },
+  {
+    "x": 160,
+    "y": 40,
+    "type": "hole-b",
+    "angle": 0
+  },
+  {
+    "x": 220,
+    "y": 40,
+    "type": "hole-y",
+    "angle": 0
+  },
+  {
+    "x": 300,
+    "y": 40,
+    "type": "hole",
+    "angle": 0
+  },
+  {
+    "x": 200,
+    "y": 400,
+    "type": "light-g",
+    "angle": 0
+  },
+  {
+    "x": 260,
+    "y": 400,
+    "type": "light-r",
+    "angle": 0
+  },
+  {
+    "x": 320,
+    "y": 400,
+    "type": "light-b",
+    "angle": 0
+  },
+  {
+    "x": 120,
+    "y": 400,
+    "type": "light-y",
+    "angle": 0
+  },
+  {
+    "x": 40,
+    "y": 500,
+    "type": "target-p",
     "angle": 0
   }
 ]

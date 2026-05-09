@@ -35,20 +35,71 @@ let isSoundEnabled = true;
 class SoundEffects {
     private ctx: AudioContext | null = null;
     private lastSpinnerTime = 0;
+    private buffers: Map<string, AudioBuffer> = new Map();
 
-    constructor() {}
-
-    private init() {
-        if (!isSoundEnabled) return;
-        if (!this.ctx) {
+    constructor() {
+        try {
+            // Create AudioContext memory instance immediately in suspended state to allow loading
             this.ctx = new (window.AudioContext || (window as any).webkitAudioContext)();
-        }
-        if (this.ctx.state === 'suspended') {
-            this.ctx.resume();
+            this.loadAllAssets();
+        } catch(e) { console.error("Erro inicializando AudioContext", e); }
+    }
+
+    private async loadAllAssets() {
+        if (!this.ctx) return;
+        const mapping = {
+            'bumper': '/sounds/Bumper1.wav',
+            'bumper-small': '/sounds/SmallBumper.wav',
+            'target': '/sounds/Target1.wav',
+            'flipper': '/sounds/flipper1.wav',
+            'light': '/sounds/light1.wav',
+            'spinner': '/sounds/spinner3.wav',
+            'gameover': '/sounds/gameover1.wav',
+            'hole': '/sounds/pingpong1.wav'
+        };
+
+        for (const [name, url] of Object.entries(mapping)) {
+            try {
+                const response = await fetch(url);
+                if (!response.ok) continue; // Silent skip to use fallback
+                const arrayBuffer = await response.arrayBuffer();
+                const decoded = await this.ctx.decodeAudioData(arrayBuffer);
+                this.buffers.set(name, decoded);
+            } catch (err) {
+                console.warn(`[SOUND] Usando sintetizador fallback para "${name}" (${url})`);
+            }
         }
     }
 
-    playBumper() {
+    private init() {
+        if (!isSoundEnabled || !this.ctx) return;
+        if (this.ctx.state === 'suspended') {
+            this.ctx.resume().catch(() => {});
+        }
+    }
+
+    private playRealBuffer(key: string, gainValue = 0.5): boolean {
+        this.init();
+        if (!this.ctx || !isSoundEnabled) return false;
+        
+        const buffer = this.buffers.get(key);
+        if (buffer) {
+            const source = this.ctx.createBufferSource();
+            const gainNode = this.ctx.createGain();
+            gainNode.gain.value = gainValue;
+            
+            source.buffer = buffer;
+            source.connect(gainNode);
+            gainNode.connect(this.ctx.destination);
+            source.start(0);
+            return true; // Tocado com sucesso!
+        }
+        return false; // Não carregado, usar fallback
+    }
+
+    playBumper(isSmall: boolean = false) {
+        const key = isSmall ? 'bumper-small' : 'bumper';
+        if (this.playRealBuffer(key, isSmall ? 0.5 : 0.65)) return;
         this.init();
         if (!this.ctx || !isSoundEnabled) return;
         const now = this.ctx.currentTime;
@@ -102,6 +153,7 @@ class SoundEffects {
     }
 
     playTarget() {
+        if (this.playRealBuffer('target', 0.55)) return;
         this.init();
         if (!this.ctx || !isSoundEnabled) return;
         const now = this.ctx.currentTime;
@@ -153,6 +205,7 @@ class SoundEffects {
     }
 
     playFlipper() {
+        if (this.playRealBuffer('flipper', 0.5)) return;
         this.init();
         if (!this.ctx || !isSoundEnabled) return;
         const now = this.ctx.currentTime;
@@ -208,6 +261,8 @@ class SoundEffects {
             return;
         }
         this.lastSpinnerTime = now;
+
+        if (this.playRealBuffer('spinner', 0.45)) return;
         
         // Simular a corrente de bicicleta: uma série de cliques rápidos ("ticks")
         // O número de cliques e velocidade dependem da velocidade de rotação
@@ -235,7 +290,12 @@ class SoundEffects {
         }
     }
 
+    playLight() {
+        this.playRealBuffer('light', 0.55);
+    }
+
     playHole() {
+        if (this.playRealBuffer('hole', 0.7)) return;
         this.init();
         if (!this.ctx || !isSoundEnabled) return;
         const now = this.ctx.currentTime;
@@ -262,6 +322,7 @@ class SoundEffects {
     }
 
     playGameOver() {
+        if (this.playRealBuffer('gameover', 0.65)) return;
         this.init();
         if (!this.ctx || !isSoundEnabled) return;
         const now = this.ctx.currentTime;
@@ -2021,7 +2082,8 @@ const runGameSimulation = (isWarping = false) => {
             } else if (data?.type === 'bumper') {
                 data.hitTimer = Date.now() + 100;
                 if (data.original) data.original.hitTimer = Date.now() + 100;
-                sounds.playBumper();
+                const isSmall = data.original?.type === 'bumper-s' || data.original?.type === 'bumper-t';
+                sounds.playBumper(isSmall);
                 let normal;
                 if (data.original?.type === 'wall-b') {
                     // Normal perpendicular para paredes elásticas
@@ -2043,7 +2105,7 @@ const runGameSimulation = (isWarping = false) => {
                 // Paredes passivas não dão impulso, apenas mudam o hitTimer para feedback visual
                 data.hitTimer = Date.now() + 100;
                 if (data.original) data.original.hitTimer = Date.now() + 100;
-                sounds.playBumper();
+                // Desativado som em paredes passivas por pedido do utilizador
             } else if (data?.type === 'target') {
                 if (data.active) {
                     sounds.playTarget();
@@ -2145,7 +2207,7 @@ const runGameSimulation = (isWarping = false) => {
             } else if (data?.type === 'light') {
                 if (!data.active) {
                     data.active = true;
-                    sounds.playTarget();
+                    sounds.playLight();
                     updateScore(200);
                     
                     const lightGroup = data.original?.type || 'light';
