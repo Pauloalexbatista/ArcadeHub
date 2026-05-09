@@ -846,15 +846,24 @@ const drawBackground = () => {
 const drawEditor = () => {
     drawBackground();
     
-    // Linha de ajuda vertical exatamente no centro da mesa (X = 220, largura total = 440)
+    // Linhas de ajuda vertical e horizontal exatamente no centro da mesa (Eixos simétricos)
     ctx.save();
     ctx.strokeStyle = activeTheme === 'retro' ? 'rgba(62, 39, 35, 0.45)' : 'rgba(0, 255, 255, 0.45)';
     ctx.lineWidth = 2;
     ctx.setLineDash([8, 8]);
+    
+    // Eixo Vertical (X = 220)
     ctx.beginPath();
     ctx.moveTo(WIDTH / 2, 0);
     ctx.lineTo(WIDTH / 2, PLAY_ZONE_BOTTOM);
     ctx.stroke();
+    
+    // Eixo Horizontal (Y = 360)
+    ctx.beginPath();
+    ctx.moveTo(0, PLAY_ZONE_BOTTOM / 2);
+    ctx.lineTo(WIDTH, PLAY_ZONE_BOTTOM / 2);
+    ctx.stroke();
+    
     ctx.restore();
     
     // Visualização dos Botões de Flipper (Mobile/Editor)
