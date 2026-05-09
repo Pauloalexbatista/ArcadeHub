@@ -455,8 +455,15 @@ const snapToNearest = (x: number, y: number, ignoreComponent: any = null) => {
     let snapY = y;
     let minDistance = 25; // Distância limite de snapping de 25px para colar perfeitamente!
 
+    const activeTool = draggedComponent ? draggedComponent.type : currentTool;
+    const isPinTool = activeTool === 'pin' || activeTool === 'prego';
+
     for (let c of components) {
         if (c === ignoreComponent) continue;
+
+        // Se estivermos a colocar ou arrastar um pino/prego, não colamos ao centro de outros pinos
+        // para permitir fazer filas apertadas de pinos (20px) sem interferências
+        if (isPinTool && (c.type === 'pin' || c.type === 'prego')) continue;
 
         // 1. Verificar o centro do objeto
         const distCenter = Math.sqrt((x - c.x)**2 + (y - c.y)**2);
