@@ -48,14 +48,14 @@ class SoundEffects {
     private async loadAllAssets() {
         if (!this.ctx) return;
         const mapping = {
-            'bumper': '/sounds/Bumper1.wav',
-            'bumper-small': '/sounds/SmallBumper.wav',
-            'target': '/sounds/Target1.wav',
-            'flipper': '/sounds/flipper1.wav',
-            'light': '/sounds/light1.wav',
-            'spinner': '/sounds/spinner3.wav',
-            'gameover': '/sounds/gameover1.wav',
-            'hole': '/sounds/pingpong1.wav'
+            'bumper': 'sounds/Bumper1.wav',
+            'bumper-small': 'sounds/SmallBumper.wav',
+            'target': 'sounds/Target1.wav',
+            'flipper': 'sounds/flipper1.wav',
+            'light': 'sounds/light1.wav',
+            'spinner': 'sounds/spinner3.wav',
+            'gameover': 'sounds/gameover1.wav',
+            'hole': 'sounds/pingpong1.wav'
         };
 
         for (const [name, url] of Object.entries(mapping)) {
@@ -1454,13 +1454,49 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         ctx.fillStyle = activeTheme === 'retro' ? '#8bc34a' : '#4caf50'; ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI*2); ctx.fill();
         ctx.fillStyle = '#fff'; ctx.font = "bold 14px Arial"; ctx.textAlign = 'center'; ctx.fillText("S", 0, 5);
     } else if (c.type === 'plunger') {
-        if (activeTheme === 'retro') {
-            ctx.fillStyle = '#8b5a2b'; ctx.fillRect(-15, -10, 30, 20); // Gatilho de madeira
-            ctx.strokeStyle = '#757575'; ctx.strokeRect(-15, -30, 30, 40);
-        } else {
-            ctx.fillStyle = '#ff00ff'; ctx.fillRect(-15, -10, 30, 20);
-            ctx.strokeStyle = '#fff'; ctx.strokeRect(-15, -30, 30, 40);
-        }
+        ctx.shadowBlur = 0;
+        
+        // 1. Haste Hidráulica Central
+        const rodGrad = ctx.createLinearGradient(-6, 0, 6, 0);
+        rodGrad.addColorStop(0, '#666'); rodGrad.addColorStop(0.5, '#fff'); rodGrad.addColorStop(1, '#666');
+        ctx.fillStyle = rodGrad;
+        ctx.fillRect(-5, -5, 10, 25); // Estende para baixo
+        
+        // 2. Chassis/Caixa Mecânica (Base Estática Visual)
+        const boxCol = activeTheme === 'retro' ? '#3e2723' : '#1a1a2e';
+        ctx.fillStyle = boxCol;
+        ctx.strokeStyle = activeTheme === 'retro' ? '#8d6e63' : '#4a4a8a';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.roundRect(-18, 6, 36, 22, 3);
+        ctx.fill(); ctx.stroke();
+        
+        // Pormenores: Grelhas/Buracos de Refrigeração na caixa
+        ctx.fillStyle = '#000';
+        ctx.fillRect(-12, 12, 24, 2);
+        ctx.fillRect(-12, 16, 24, 2);
+        ctx.fillRect(-12, 20, 24, 2);
+        
+        // 3. Cabeça de Impacto (O Martelo real que bate na bola)
+        // Fica posicionado no topo exato da caixa física Y=-10!
+        const impactColor = activeTheme === 'retro' ? '#ff9800' : '#00ffff';
+        ctx.shadowBlur = activeTheme === 'retro' ? 0 : 15;
+        ctx.shadowColor = impactColor;
+        
+        const hamGrad = ctx.createLinearGradient(0, -10, 0, -2);
+        hamGrad.addColorStop(0, '#ffffff'); // Brilho extremo na aresta de embate
+        hamGrad.addColorStop(0.3, impactColor);
+        hamGrad.addColorStop(1, activeTheme === 'retro' ? '#bf360c' : '#006666');
+        
+        ctx.fillStyle = hamGrad;
+        ctx.beginPath();
+        ctx.roundRect(-16, -10, 32, 8, 2); // Bloco horizontal superior
+        ctx.fill();
+        
+        // Tampa de fixação/anel de metal
+        ctx.shadowBlur = 0;
+        ctx.fillStyle = '#444';
+        ctx.fillRect(-18, -2, 36, 4);
     } else if (c.type === 'hole') {
         if (activeTheme === 'retro') {
             ctx.fillStyle = '#1c0d02'; ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
