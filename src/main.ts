@@ -390,6 +390,14 @@ let score = 0;
 let ballsLeft = 3;
 let extraBallThreshold = 250000;
 let keysPressed = new Set<string>();
+
+// Sistema de Feedback Hático (Vibração) e Abanão Físico (Shake)
+const vibrateDevice = (ms: number) => {
+    if (typeof navigator !== 'undefined' && navigator.vibrate) {
+        try { navigator.vibrate(ms); } catch (e) {}
+    }
+};
+let lastPhysicalShakeTime = 0;
 let isLaunched = false;
 let ghostPos = { x: 0, y: 0 };
 
@@ -417,6 +425,7 @@ const getNextExtraBallThreshold = (awardedCount: number) => {
 let world: any = null;
 let marbleBody: any = null;
 let plungerBody: any = null;
+let plungerJoint: any = null;
 let flipperJoints: any[] = [];
 let animationId: number | null = null;
 
@@ -514,7 +523,7 @@ const getGridPos = (e: MouseEvent) => {
 const snapToNearest = (x: number, y: number, ignoreComponent: any = null) => {
     let snapX = x;
     let snapY = y;
-    let minDistance = 25; // Distância limite de snapping de 25px para colar perfeitamente!
+    let minDistance = 12; // Reduzido de 25px para 12px para evitar atração magnética intrusiva
 
     const activeTool = draggedComponent ? draggedComponent.type : currentTool;
     const isPinTool = activeTool === 'pin' || activeTool === 'prego';
@@ -850,14 +859,18 @@ canvas.addEventListener('click', async (e) => {
         }
     } else {
         const snapped = snapToNearest(pos.x, pos.y);
-        const existingIndex = components.findIndex(c => isPointInComponent(snapped.x, snapped.y, c));
-        if (existingIndex !== -1) {
-            const comp = components[existingIndex];
-            if (comp.type === currentTool) {
-                comp.angle = (comp.angle + (10 * Math.PI / 180)) % (Math.PI * 2);
-            } else {
-                comp.type = currentTool; comp.angle = 0;
-            }
+        // Permitir sobreposição massiva de objectos!
+        // Só rodamos se for EXACTAMENTE a mesma posição (< 3px) E o mesmo tipo de ferramenta.
+        // Caso contrário, adicionamos um novo componente no topo, satisfazendo o pedido do utilizador.
+        const matchIndex = components.findIndex(c => 
+            c.type === currentTool && 
+            Math.abs(c.x - snapped.x) < 3 && 
+            Math.abs(c.y - snapped.y) < 3
+        );
+        
+        if (matchIndex !== -1) {
+            const comp = components[matchIndex];
+            comp.angle = (comp.angle + (10 * Math.PI / 180)) % (Math.PI * 2);
         } else {
             components.push({ x: snapped.x, y: snapped.y, type: currentTool, angle: 0 });
         }
@@ -884,6 +897,16 @@ const drawBackground = () => {
         // Divisória de latão
         ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 3;
         ctx.beginPath(); ctx.moveTo(0, PLAY_ZONE_BOTTOM); ctx.lineTo(WIDTH, PLAY_ZONE_BOTTOM); ctx.stroke();
+
+        // NOVO: Moldura do Ecrã de Mensagens Retro (Entalhe profundo na madeira)
+        ctx.save();
+        ctx.fillStyle = '#a98252'; // Mais escuro, profundidade
+        ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.roundRect(WIDTH * 0.15, PLAY_ZONE_BOTTOM + 38, WIDTH * 0.7, 54, 6);
+        ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 1;
+        ctx.strokeRect(WIDTH * 0.15 + 3, PLAY_ZONE_BOTTOM + 38 + 3, WIDTH * 0.7 - 6, 54 - 6);
+        ctx.restore();
     } else {
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
         
@@ -902,6 +925,19 @@ const drawBackground = () => {
         // Fundo do Painel Cyber
         ctx.fillStyle = 'rgba(5, 2, 10, 0.95)';
         ctx.fillRect(2, PLAY_ZONE_BOTTOM, WIDTH - 4, HEIGHT - PLAY_ZONE_BOTTOM - 4);
+
+        // NOVO: Ecrã LED de Mensagens Néon (Estilo Sci-Fi Terminal)
+        ctx.save();
+        const boxX = WIDTH * 0.15, boxY = PLAY_ZONE_BOTTOM + 38, boxW = WIDTH * 0.7, boxH = 54;
+        ctx.fillStyle = '#050109';
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.4)'; ctx.lineWidth = 1;
+        ctx.beginPath(); ctx.roundRect(boxX, boxY, boxW, boxH, 8); ctx.fill(); ctx.stroke();
+        // Grelha de Scanlines (linhas de CRT antigas)
+        ctx.strokeStyle = 'rgba(0, 255, 255, 0.05)'; ctx.lineWidth = 1;
+        for(let y = boxY + 3; y < boxY + boxH; y += 3) {
+            ctx.beginPath(); ctx.moveTo(boxX + 5, y); ctx.lineTo(boxX + boxW - 5, y); ctx.stroke();
+        }
+        ctx.restore();
     }
 };
 
@@ -977,7 +1013,7 @@ const drawEditor = () => {
         if (c.p0 && (c.p4 || c.p2)) {
             ctx.save();
             if (activeTheme === 'retro') {
-                ctx.strokeStyle = c.type === 'wall-b' ? '#111111' : '#3e2723'; // Elásticos pretos (wall-b) e paredes de madeira escura (wall)!
+                ctx.strokeStyle = c.type === 'wall-b' ? '#d32f2f' : '#3e2723'; // Elásticos vermelhos (wall-b) e paredes de madeira escura (wall)!
                 ctx.lineWidth = 6;
                 ctx.lineCap = 'round';
                 ctx.shadowBlur = 0;
@@ -1292,25 +1328,46 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         }
     } else if (c.type === 'target' || c.type === 'target-p') {
         const isPerm = c.type === 'target-p';
-        if (activeTheme === 'retro') {
-            // Alvo mecânico clássico (Drop target retangular branco/amarelo com bullseye de círculos concêntricos vermelhos!)
-            ctx.fillStyle = isPerm ? '#ffca28' : '#ffffff'; 
-            ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 2.5;
-            ctx.beginPath(); ctx.roundRect(-15, -15, 30, 30, 4); ctx.fill(); ctx.stroke();
-            
-            // Desenhar os Círculos Concêntricos de Tiro ao Alvo (Bullseye Vermelho Retro)
-            ctx.strokeStyle = '#b71c1c'; ctx.lineWidth = 2.5;
-            ctx.beginPath(); ctx.arc(0, 0, 9, 0, Math.PI*2); ctx.stroke();
-            
-            ctx.fillStyle = '#b71c1c';
-            ctx.beginPath(); ctx.arc(0, 0, 4.5, 0, Math.PI*2); ctx.fill();
-        } else {
-            ctx.fillStyle = isPerm ? '#ffeb3b' : '#ff00ff'; ctx.strokeStyle = isPerm ? '#e91e63' : '#00ffff'; ctx.lineWidth = 2;
-            ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
-            ctx.beginPath(); ctx.roundRect(-15, -15, 30, 30, 6); ctx.fill(); ctx.stroke();
+        const isActive = extraData.active !== false; // Editor assume true por padrão
+        
+        if (!isActive) {
+            // Efeito visual de cair para dentro da máquina (encolhe 40%)
+            ctx.scale(0.6, 0.6);
         }
-        if (isPlaying && extraData.label !== undefined) {
-            ctx.fillStyle = activeTheme === 'retro' ? '#000000' : (isPerm ? '#110520' : '#fff'); ctx.font = 'bold 16px Orbitron'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+
+        if (activeTheme === 'retro') {
+            if (!isActive) {
+                // Alvo derrubado Clássico (Preto, no fundo da máquina)
+                ctx.fillStyle = '#1a1a1a'; // Cinza muito escuro/preto
+                ctx.strokeStyle = '#000000'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.roundRect(-15, -15, 30, 30, 4); ctx.fill(); ctx.stroke();
+                // Profundidade escura
+                ctx.fillStyle = '#000000';
+                ctx.beginPath(); ctx.roundRect(-11, -11, 22, 22, 2); ctx.fill();
+            } else {
+                // Alvo mecânico clássico (Sem Bullseye para ler os números perfeitamente!)
+                ctx.fillStyle = isPerm ? '#ffca28' : '#ffffff'; 
+                ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 2.5;
+                ctx.beginPath(); ctx.roundRect(-15, -15, 30, 30, 4); ctx.fill(); ctx.stroke();
+            }
+        } else {
+            if (!isActive) {
+                // Alvo derrubado Néon (Apagado, esbatido)
+                ctx.fillStyle = 'rgba(20, 8, 35, 0.85)';
+                ctx.strokeStyle = 'rgba(0, 255, 255, 0.2)'; ctx.lineWidth = 2;
+                ctx.shadowBlur = 0;
+                ctx.beginPath(); ctx.roundRect(-15, -15, 30, 30, 6); ctx.fill(); ctx.stroke();
+            } else {
+                ctx.fillStyle = isPerm ? '#ffeb3b' : '#ff00ff'; ctx.strokeStyle = isPerm ? '#e91e63' : '#00ffff'; ctx.lineWidth = 2;
+                ctx.shadowBlur = 15; ctx.shadowColor = ctx.fillStyle;
+                ctx.beginPath(); ctx.roundRect(-15, -15, 30, 30, 6); ctx.fill(); ctx.stroke();
+            }
+        }
+        
+        // Só desenha o número se estiver ativo e visível!
+        if (isActive && isPlaying && extraData.label !== undefined) {
+            ctx.fillStyle = activeTheme === 'retro' ? '#3e2723' : (isPerm ? '#110520' : '#fff'); 
+            ctx.font = 'bold 17px Orbitron'; ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
             ctx.shadowBlur = 0; ctx.fillText(extraData.label.toString(), 0, 0);
         }
     } else if (c.type === 'spinner') {
@@ -1456,47 +1513,74 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
     } else if (c.type === 'plunger') {
         ctx.shadowBlur = 0;
         
-        // 1. Haste Hidráulica Central
-        const rodGrad = ctx.createLinearGradient(-6, 0, 6, 0);
-        rodGrad.addColorStop(0, '#666'); rodGrad.addColorStop(0.5, '#fff'); rodGrad.addColorStop(1, '#666');
-        ctx.fillStyle = rodGrad;
-        ctx.fillRect(-5, -5, 10, 25); // Estende para baixo
-        
-        // 2. Chassis/Caixa Mecânica (Base Estática Visual)
-        const boxCol = activeTheme === 'retro' ? '#3e2723' : '#1a1a2e';
-        ctx.fillStyle = boxCol;
-        ctx.strokeStyle = activeTheme === 'retro' ? '#8d6e63' : '#4a4a8a';
-        ctx.lineWidth = 2;
-        ctx.beginPath();
-        ctx.roundRect(-18, 6, 36, 22, 3);
-        ctx.fill(); ctx.stroke();
-        
-        // Pormenores: Grelhas/Buracos de Refrigeração na caixa
-        ctx.fillStyle = '#000';
-        ctx.fillRect(-12, 12, 24, 2);
-        ctx.fillRect(-12, 16, 24, 2);
-        ctx.fillRect(-12, 20, 24, 2);
-        
-        // 3. Cabeça de Impacto (O Martelo real que bate na bola)
-        // Fica posicionado no topo exato da caixa física Y=-10!
-        const impactColor = activeTheme === 'retro' ? '#ff9800' : '#00ffff';
-        ctx.shadowBlur = activeTheme === 'retro' ? 0 : 15;
-        ctx.shadowColor = impactColor;
-        
-        const hamGrad = ctx.createLinearGradient(0, -10, 0, -2);
-        hamGrad.addColorStop(0, '#ffffff'); // Brilho extremo na aresta de embate
-        hamGrad.addColorStop(0.3, impactColor);
-        hamGrad.addColorStop(1, activeTheme === 'retro' ? '#bf360c' : '#006666');
-        
-        ctx.fillStyle = hamGrad;
-        ctx.beginPath();
-        ctx.roundRect(-16, -10, 32, 8, 2); // Bloco horizontal superior
-        ctx.fill();
-        
-        // Tampa de fixação/anel de metal
-        ctx.shadowBlur = 0;
-        ctx.fillStyle = '#444';
-        ctx.fillRect(-18, -2, 36, 4);
+        // Definir qual a peça que estamos a desenhar (no Editor desenha tudo; no Jogo desenha separado por corpo)
+        const renderLane = !isPlaying || extraData.part === 'plunger-lane';
+        const renderHead = !isPlaying || extraData.part === 'plunger-head';
+
+        if (renderLane) {
+            ctx.save();
+            // A. Trilhos de Proteção da Mola (Rails/Guias laterais)
+            ctx.strokeStyle = activeTheme === 'retro' ? '#5d4037' : 'rgba(0, 255, 255, 0.3)';
+            ctx.lineWidth = 3;
+            ctx.shadowBlur = activeTheme === 'retro' ? 0 : 8;
+            ctx.shadowColor = '#00ffff';
+            
+            // Linha Esquerda
+            ctx.beginPath(); ctx.moveTo(-19, 40); ctx.lineTo(-19, -60); ctx.stroke();
+            // Linha Direita
+            ctx.beginPath(); ctx.moveTo(19, 40); ctx.lineTo(19, -60); ctx.stroke();
+            
+            // B. Chapa Inferior de batente
+            ctx.fillStyle = activeTheme === 'retro' ? '#3e2723' : '#1a1a2e';
+            ctx.fillRect(-20, 38, 40, 4);
+
+            // C. Chassis/Caixa Mecânica Visual na base
+            const boxCol = activeTheme === 'retro' ? '#3e2723' : '#1a1a2e';
+            ctx.fillStyle = boxCol;
+            ctx.strokeStyle = activeTheme === 'retro' ? '#8d6e63' : '#4a4a8a';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.roundRect(-18, 6, 36, 30, 3);
+            ctx.fill(); ctx.stroke();
+            
+            // Grelhas da caixa
+            ctx.fillStyle = '#000';
+            ctx.fillRect(-12, 16, 24, 2);
+            ctx.fillRect(-12, 20, 24, 2);
+            ctx.fillRect(-12, 24, 24, 2);
+            ctx.restore();
+        }
+
+        if (renderHead) {
+            ctx.save();
+            // D. Haste Hidráulica que liga a cabeça à caixa
+            const rodGrad = ctx.createLinearGradient(-6, 0, 6, 0);
+            rodGrad.addColorStop(0, '#666'); rodGrad.addColorStop(0.5, '#fff'); rodGrad.addColorStop(1, '#666');
+            ctx.fillStyle = rodGrad;
+            // A haste desce a partir da cabeça até entrar na caixa (visual fixo em Y local da cabeça)
+            ctx.fillRect(-4, -2, 8, 40); 
+
+            // E. Cabeça de Impacto (Martelo)
+            const impactColor = activeTheme === 'retro' ? '#ff9800' : '#00ffff';
+            ctx.shadowBlur = activeTheme === 'retro' ? 0 : 15;
+            ctx.shadowColor = impactColor;
+            
+            const hamGrad = ctx.createLinearGradient(0, -12, 0, -2);
+            hamGrad.addColorStop(0, '#ffffff');
+            hamGrad.addColorStop(0.3, impactColor);
+            hamGrad.addColorStop(1, activeTheme === 'retro' ? '#bf360c' : '#006666');
+            
+            ctx.fillStyle = hamGrad;
+            ctx.beginPath();
+            ctx.roundRect(-16, -12, 32, 10, 2); // Bloco de embate um pouco mais gordo
+            ctx.fill();
+            
+            // Tampa de fixação inferior
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = '#444';
+            ctx.fillRect(-12, -2, 24, 4);
+            ctx.restore();
+        }
     } else if (c.type === 'hole') {
         if (activeTheme === 'retro') {
             ctx.fillStyle = '#1c0d02'; ctx.beginPath(); ctx.arc(0, 0, 20, 0, Math.PI*2); ctx.fill();
@@ -1703,8 +1787,30 @@ const getHighscoresForTable = (tableName: string) => {
 const createBall = () => {
     if (!world || marbleBody) return;
     const spawnObj = components.find(c => c.type === 'spawn');
-    const sX = spawnObj ? spawnObj.x : WIDTH - 30;
-    const sY = spawnObj ? spawnObj.y : PLAY_ZONE_BOTTOM - 60;
+    const plungerObj = components.find(c => c.type === 'plunger');
+    
+    let sX = WIDTH - 30;
+    let sY = PLAY_ZONE_BOTTOM - 60;
+
+    // Se existir o ícone de Spawn, usar a sua localização base
+    if (spawnObj) {
+        sX = spawnObj.x;
+        sY = spawnObj.y;
+    } 
+    // Se não existir Spawn MAS existir uma mola, usar a mola como base de spawn automática!
+    else if (plungerObj) {
+        sX = plungerObj.x;
+        sY = plungerObj.y;
+    }
+
+    // Ajuste Inteligente: Se o spawn for na posição da Mola, empurrar a bola 26px para cima dela!
+    const targetPlunger = components.find(c => c.type === 'plunger' && Math.hypot(c.x - sX, c.y - sY) < 40);
+    if (targetPlunger) {
+        const ang = targetPlunger.angle || 0;
+        // O offset de 26px (raio da bola + espessura) aplicado na direcção negativa do eixo local!
+        sX += 28 * Math.sin(ang);
+        sY -= 28 * Math.cos(ang);
+    }
 
     isLaunched = false;
     marbleBody = world.createBody({ 
@@ -1714,7 +1820,6 @@ const createBall = () => {
     });
     marbleBody.createFixture(planck.Circle(pxToM(13)), { density: 1.5, restitution: 0.5, friction: 0.02 });
     marbleBody.setUserData({ type: 'ball' });
-    document.getElementById('launch-hint')?.classList.remove('hidden');
 };
 
 const launchBall = () => {
@@ -1724,7 +1829,6 @@ const launchBall = () => {
     marbleBody.setDynamic();
     // Um pequeno impulso inicial para a bola não ficar colada no spawn
     marbleBody.applyLinearImpulse(Vec2(0, -5), marbleBody.getWorldCenter());
-    document.getElementById('launch-hint')?.classList.add('hidden');
     showDisplayMessage(`BOLA EM JOGO!`, '#00ff00', 1000);
 };
 
@@ -1760,7 +1864,6 @@ const runGameSimulation = (isWarping = false) => {
     document.getElementById('grid-overlay')?.classList.add('hidden');
     document.getElementById('score-display')?.classList.remove('hidden');
     document.getElementById('mobile-flipper-buttons')?.classList.remove('hidden');
-    document.getElementById('launch-hint')?.classList.remove('hidden');
     
     // Gestão de botões
     document.getElementById('btn-play')?.classList.add('hidden');
@@ -1769,7 +1872,7 @@ const runGameSimulation = (isWarping = false) => {
 
     // Inicializar Planck World (Gravidade aumentada para 25 para sentir o peso)
     world = planck.World(Vec2(0, 25 * gravityVal));
-    flipperJoints = []; marbleBody = null; plungerBody = null;
+    flipperJoints = []; marbleBody = null; plungerBody = null; plungerJoint = null;
 
     // Paredes Invisíveis do Sistema
     // Paredes Invisíveis do Sistema (Usando Box para evitar saltinhos nas quinas)
@@ -1890,10 +1993,36 @@ const runGameSimulation = (isWarping = false) => {
             b.createFixture(planck.Circle(pxToM(12)), { isSensor: true });
             b.setUserData({ type: 'light', original: c, active: c.active !== undefined ? c.active : false });
         } else if (c.type === 'plunger') {
-            plungerBody = world.createDynamicBody(pos);
-            plungerBody.createFixture(planck.Box(pxToM(17.5), pxToM(10)), { density: 20 });
-            world.createJoint(planck.PrismaticJoint({ lowerTranslation: 0, upperTranslation: pxToM(60), enableLimit: true }, ground, plungerBody, pos, Vec2(0, 1)));
-            plungerBody.setUserData({ type: 'plunger', original: c });
+            const angle = c.angle || 0;
+            
+            // 1. Contentor Estático (O trilho da mola e protecções laterais)
+            const laneBody = world.createBody({ position: pos, angle: angle, type: 'static' });
+            
+            // Paredes de Proteção Laterais (de -60 a +40 local Y, com gap de 36px interno)
+            laneBody.createFixture(planck.Box(pxToM(2), pxToM(50), Vec2(pxToM(-19), pxToM(-10)), 0), { restitution: 0.2 });
+            laneBody.createFixture(planck.Box(pxToM(2), pxToM(50), Vec2(pxToM(19), pxToM(-10)), 0), { restitution: 0.2 });
+            
+            // Batente sólido na base para reter qualquer coisa
+            laneBody.createFixture(planck.Box(pxToM(20), pxToM(2), Vec2(0, pxToM(40)), 0), { restitution: 0.2 });
+            
+            laneBody.setUserData({ type: 'plunger-lane', original: c });
+
+            // 2. Cabeça Móvel (O martelo dinâmico)
+            plungerBody = world.createDynamicBody({ position: pos, angle: angle });
+            // Largura 32px, centrado. Friction nula para deslizar perfeitamente entre os trilhos.
+            plungerBody.createFixture(planck.Box(pxToM(16), pxToM(8), Vec2(0, pxToM(-6)), 0), { density: 60, friction: 0 }); 
+            plungerBody.setUserData({ type: 'plunger-head', original: c });
+
+            // 3. Joint Prismático com MOTOR (o motor simula a mola de forma ultra-fiel)
+            const axis = Vec2(-Math.sin(angle), Math.cos(angle));
+            plungerJoint = world.createJoint(planck.PrismaticJoint({
+                lowerTranslation: 0,
+                upperTranslation: pxToM(65), // Espaço para recuar até 65px
+                enableLimit: true,
+                enableMotor: true,
+                maxMotorForce: 20000, // Força brutal para garantir aceleração massiva ao soltar
+                motorSpeed: -60 // Empurra para o topo por defeito
+            }, laneBody, plungerBody, pos, axis));
         } else if (c.type === 'hole') {
             const b = world.createBody(pos);
             b.createFixture(planck.Circle(pxToM(20)), { isSensor: true });
@@ -2072,7 +2201,6 @@ const runGameSimulation = (isWarping = false) => {
             marbleBody.setPosition(Vec2.add(hPos, offsetWorld));
             marbleBody.setStatic();
             isLaunched = true; // Marcar já como lançada!
-            document.getElementById('launch-hint')?.classList.add('hidden');
             
             setTimeout(() => {
                 if (marbleBody) {
@@ -2106,6 +2234,7 @@ const runGameSimulation = (isWarping = false) => {
                 data.hitTimer = Date.now() + 100;
                 if (data.original) data.original.hitTimer = Date.now() + 100;
                 sounds.playBumper();
+                vibrateDevice(40); // Vibração tática no impacto do prego salvador
                 const bPos = ball.getPosition();
                 const oPos = other.getPosition();
                 let normal = Vec2(bPos.x - oPos.x, bPos.y - oPos.y);
@@ -2120,6 +2249,7 @@ const runGameSimulation = (isWarping = false) => {
                 if (data.original) data.original.hitTimer = Date.now() + 100;
                 const isSmall = data.original?.type === 'bumper-s' || data.original?.type === 'bumper-t';
                 sounds.playBumper(isSmall);
+                vibrateDevice(isSmall ? 30 : 45); // Vibração tática consoante o tamanho do bumper
                 let normal;
                 if (data.original?.type === 'wall-b') {
                     // Normal perpendicular para paredes elásticas
@@ -2149,7 +2279,11 @@ const runGameSimulation = (isWarping = false) => {
                     updateScore(pts);
                     showDisplayMessage(`TARGET +${pts}`, '#ff00ff');
                     data.active = false;
-                    setTimeout(() => world.destroyBody(other), 0);
+                    // Em vez de destruir, tornamos o alvo passível (como se tivesse caído para dentro da mesa)
+                    // para que o renderizador continue a desenhá-lo com o novo visual mas sem bloquear a bola.
+                    const fix = other.getFixtureList();
+                    if (fix) fix.setSensor(true); 
+                    
                     targets = targets.filter(t => t !== other);
                     if (targets.length === 0) {
                         targetLevel++;
@@ -2158,7 +2292,18 @@ const runGameSimulation = (isWarping = false) => {
                         updateScore(2000 * (targetLevel - 1));
                         
                         setTimeout(() => {
-                            // Repor alvos de forma segura (fora do step de física bloqueado)
+                            // 1. Limpar TOTALMENTE os corpos físicos que ficaram na mesa como sensores para evitar duplicações!
+                            for (let b = world.getBodyList(); b; ) {
+                                const next = b.getNext();
+                                const bData = b.getUserData();
+                                // Limpamos todos os corpos do tipo 'target' que existam na mesa no momento da renovação
+                                if (bData?.type === 'target') {
+                                    world.destroyBody(b);
+                                }
+                                b = next;
+                            }
+                            
+                            // 2. Repor os novos alvos frescos ativos de forma segura
                             components.forEach(c => {
                                 if (c.type === 'target') {
                                     const pos = Vec2(pxToM(c.x), pxToM(c.y));
@@ -2342,11 +2487,6 @@ const runGameSimulation = (isWarping = false) => {
         // Sincronização contínua de inputs (Garante que A+D dispara sempre)
         syncInputs();
 
-        if (!isLaunched) {
-            document.getElementById('launch-hint')?.classList.remove('hidden');
-        } else {
-            document.getElementById('launch-hint')?.classList.add('hidden');
-        }
         
         world.step(1/60, 8, 3);
 
@@ -2449,19 +2589,60 @@ const runGameSimulation = (isWarping = false) => {
         }
 
         const now = Date.now();
+        let activeMsg = '';
+        let activeColor = '';
+        let isPulsing = false;
+
+        // Prioridade 1: Mensagem temporária activa do jogo
         if (displayMessage && now < displayMessageTimer) {
-            ctx.font = 'bold 18px Orbitron'; ctx.textAlign = 'center';
-            ctx.fillStyle = activeTheme === 'retro' ? '#3e2723' : displayMessageColor;
-            ctx.shadowBlur = activeTheme === 'retro' ? 0 : 10; ctx.shadowColor = displayMessageColor;
-            
-            // Suporte para 2 linhas (se houver '\n' ou se for longa)
-            const parts = displayMessage.split('\n');
-            if (parts.length > 1) {
-                ctx.fillText(parts[0], WIDTH / 2, PLAY_ZONE_BOTTOM + 50);
-                ctx.fillText(parts[1], WIDTH / 2, PLAY_ZONE_BOTTOM + 80);
-            } else {
-                ctx.fillText(displayMessage, WIDTH / 2, PLAY_ZONE_BOTTOM + 65);
+            activeMsg = displayMessage;
+            activeColor = displayMessageColor;
+        } 
+        // Prioridade 2: Ajuda ao Lançamento se o jogo começou mas ainda não lançou a bola
+        else if (isPlaying && !isLaunched && marbleBody) {
+            activeMsg = "PRESSIONE [ESPAÇO] OU [A+D]\nPARA LANÇAR A BOLA 🚀";
+            activeColor = activeTheme === 'retro' ? '#e64a19' : '#ffeb3b';
+            isPulsing = true;
+        }
+
+        if (activeMsg) {
+            ctx.save();
+            ctx.font = "900 16px 'Orbitron', sans-serif"; 
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+
+            // Pulsação subtil para atrair a atenção
+            let globalAlpha = 1.0;
+            if (isPulsing) {
+                globalAlpha = 0.6 + 0.4 * Math.sin(now * 0.008);
             }
+
+            const centerX = WIDTH / 2;
+            // Centrado verticalmente na caixa de 54px de altura que desenhamos no drawBackground
+            const centerY = PLAY_ZONE_BOTTOM + 38 + 27; 
+
+            if (activeTheme === 'retro') {
+                // Estilo LCD clássico com contraste profundo na madeira
+                ctx.fillStyle = activeColor;
+                ctx.globalAlpha = globalAlpha;
+                ctx.shadowBlur = 0;
+            } else {
+                // Estilo Cyber Neon Brilhante
+                ctx.shadowBlur = 15;
+                ctx.shadowColor = activeColor;
+                // Preenchimento com opacidade baseada na pulsação
+                ctx.fillStyle = `rgba(255, 255, 255, ${globalAlpha})`;
+            }
+
+            const parts = activeMsg.split('\n');
+            if (parts.length > 1) {
+                // Offset para compensar 2 linhas
+                ctx.fillText(parts[0], centerX, centerY - 10);
+                ctx.fillText(parts[1], centerX, centerY + 10);
+            } else {
+                ctx.fillText(activeMsg, centerX, centerY);
+            }
+            ctx.restore();
         }
         ctx.restore();
 
@@ -2470,9 +2651,9 @@ const runGameSimulation = (isWarping = false) => {
             if (c.p0 && (c.p4 || c.p2)) {
                 ctx.save();
                 if (activeTheme === 'retro') {
-                    ctx.strokeStyle = c.type === 'wall-b' ? '#111111' : '#3e2723'; // Elásticos pretos (wall-b) e paredes de madeira (wall)!
+                    ctx.strokeStyle = c.type === 'wall-b' ? '#d32f2f' : '#3e2723'; // Elásticos vermelhos (wall-b) e paredes de madeira (wall)!
                     if (now < (c.hitTimer || 0)) {
-                        ctx.strokeStyle = c.type === 'wall-b' ? '#555555' : '#5d4037'; // Feedback suave ao bater
+                        ctx.strokeStyle = c.type === 'wall-b' ? '#ff5252' : '#5d4037'; // Feedback suave ao bater
                     }
                     ctx.lineWidth = 6;
                     ctx.lineCap = 'round';
@@ -2783,6 +2964,7 @@ const runGameSimulation = (isWarping = false) => {
                     }
                 }
                 drawComponent(data.original, true, { 
+                    part: data.type, // Informa se é o lane estático ou a cabeça dinâmica
                     hit: now < (data.hitTimer || 0), 
                     label: data.level !== undefined ? data.level : targetLevel,
                     active: data.active,
@@ -2876,7 +3058,7 @@ const syncInputs = () => {
     if (!isPlaying) return;
     const leftDown = keysPressed.has('a') || keysPressed.has('arrowleft') || keysPressed.has('mobile-l');
     const rightDown = keysPressed.has('d') || keysPressed.has('arrowright') || keysPressed.has('mobile-r');
-    const isSpace = keysPressed.has(' ') || keysPressed.has('arrowdown') || keysPressed.has('arrowup');
+    const isSpace = keysPressed.has(' ') || keysPressed.has('arrowdown');
 
     if (!isLaunched && (isSpace || (leftDown && rightDown))) {
         launchBall();
@@ -2890,8 +3072,11 @@ const syncInputs = () => {
         }
     });
 
-    if (isSpace && plungerBody) {
-        plungerBody.applyLinearImpulse(Vec2(0, 150), plungerBody.getWorldCenter());
+    if (plungerJoint) {
+        // Gatilho: Qualquer tecla de espaço/setas OU carregar em AMBOS os flippers simultaneamente!
+        const isTriggered = isSpace || (leftDown && rightDown);
+        // Se ativado, recua a mola lentamente; se não, dispara para o topo com fúria!
+        plungerJoint.setMotorSpeed(isTriggered ? 15 : -100);
     }
 };
 
@@ -2925,6 +3110,7 @@ const nudgeTable = () => {
     const impulseY = -5 - Math.random() * 3;
     marbleBody.applyLinearImpulse(Vec2(impulseX, impulseY), marbleBody.getWorldCenter());
     
+    vibrateDevice(80); // Vibração forte de mesa abanada
     showDisplayMessage("⚠️ MESA SACUDIDA! (NUDGE) 📳", "#ff9800", 1200);
     
     // Efeito visual fantástico de vibração/abalo do canvas de jogo
@@ -2941,6 +3127,25 @@ const nudgeTable = () => {
     }
 };
 
+// Detetor Físico de Abanão (Shake Detection) via Acelerómetro para Telemóveis
+window.addEventListener('devicemotion', (e) => {
+    if (!isPlaying || !marbleBody) return;
+    const acc = e.accelerationIncludingGravity;
+    if (!acc || acc.x === null || acc.y === null || acc.z === null) return;
+    
+    // Calcular a força G resultante total
+    const totalAcc = Math.sqrt(acc.x**2 + acc.y**2 + acc.z**2);
+    // A gravidade em repouso é cerca de 9.8 m/s². Um abanão vigoroso salta facilmente acima de 23-25 m/s².
+    if (totalAcc > 24) {
+        const now = Date.now();
+        // Throttle para não disparar impulsos infinitos
+        if (now - lastPhysicalShakeTime > 1000) { 
+            lastPhysicalShakeTime = now;
+            nudgeTable();
+        }
+    }
+});
+
 window.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' || e.key === 'Esc') {
         stopSimulation();
@@ -2948,14 +3153,14 @@ window.addEventListener('keydown', (e) => {
         return;
     }
     const key = e.key.toLowerCase();
-    if (key === 'n' && isPlaying) {
+    if ((key === 'n' || key === 'arrowup') && isPlaying) {
         nudgeTable();
         return;
     }
     if (!keysPressed.has(key) && isPlaying) {
         if (['a', 'arrowleft', 'd', 'arrowright'].includes(key)) {
             sounds.playFlipper();
-        } else if ([' ', 'arrowdown', 'arrowup'].includes(key)) {
+        } else if ([' ', 'arrowdown'].includes(key)) {
             sounds.playFlipper(); // Som mecânico de ativação do plunger
         }
     }
@@ -3045,6 +3250,11 @@ document.getElementById('btn-save-score')?.addEventListener('click', () => {
 });
 
 document.getElementById('modal-btn-play')?.addEventListener('click', async () => {
+    // Tentar ativar permissão para sensores de movimento (necessário em iOS 13+ ao toque do user!)
+    if (typeof (DeviceMotionEvent as any).requestPermission === 'function') {
+        (DeviceMotionEvent as any).requestPermission().catch(() => {});
+    }
+    
     const tableSelect = document.getElementById('modal-table-select') as HTMLSelectElement;
     const tableName = tableSelect.value;
     if (tableName && !tableName.includes("Sem mesas")) {
@@ -3091,7 +3301,6 @@ const stopSimulation = () => {
     document.getElementById('btn-play')?.classList.remove('hidden');
     document.getElementById('btn-edit')?.classList.add('hidden');
     document.getElementById('score-display')?.classList.add('hidden');
-    document.getElementById('launch-hint')?.classList.add('hidden');
     drawEditor();
 };
 
@@ -3105,6 +3314,15 @@ document.getElementById('btn-clear')?.addEventListener('click', () => { if(confi
 document.getElementById('btn-settings-toggle')?.addEventListener('click', (e) => {
     e.stopPropagation();
     document.getElementById('settings-dropdown')?.classList.toggle('hidden');
+});
+
+// Gestão do Modal de Regras/Instruções
+document.getElementById('btn-rules')?.addEventListener('click', () => {
+    document.getElementById('rules-modal')?.classList.remove('hidden');
+    document.getElementById('settings-dropdown')?.classList.add('hidden');
+});
+document.getElementById('btn-close-rules')?.addEventListener('click', () => {
+    document.getElementById('rules-modal')?.classList.add('hidden');
 });
 
 document.addEventListener('click', (e) => {
@@ -3134,7 +3352,7 @@ const setTheme = (theme: 'neon' | 'retro') => {
     
     const btn = document.getElementById('btn-theme-toggle');
     if (btn) {
-        btn.innerText = theme === 'neon' ? "💎 NÉON" : "🪵 CLÁSSICO";
+        btn.innerText = theme === 'neon' ? "🪵 CLÁSSICO" : "💎 NÉON";
     }
     
     // Sincronizar botões do painel do criador (sidebar)
@@ -3420,9 +3638,9 @@ const loadTableList = async () => {
     const populate = (s: HTMLSelectElement) => {
         if (!s) return;
         if (names.length === 0) {
-            s.innerHTML = '<option value="">Sem mesas guardadas 🛠️</option>';
+            s.innerHTML = '<option value="">-- Nenhuma Mesa --</option>';
         } else {
-            s.innerHTML = names.map(t => `<option value="${t}">${t}</option>`).join('');
+            s.innerHTML = '<option value="">-- Selecionar Mesa --</option>' + names.map(t => `<option value="${t}">${t}</option>`).join('');
         }
     };
 

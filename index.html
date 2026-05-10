@@ -62,15 +62,51 @@
     <div id="app" class="hidden">
         <aside id="sidebar" class="hidden-mobile">
             <div class="logo">PINBALL<span>WORKSHOP</span></div>
-            <button id="btn-goto-game" class="btn header-btn" style="width: 100%; justify-content: center; margin-bottom: 15px; font-size: 14px; padding: 10px;">🚀 Voltar ao Jogo</button>
             
-            <div class="sidebar-theme-toggle" style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px; padding: 10px; background: rgba(255,255,255,0.05); border-radius: 6px; border: 1px solid rgba(255,255,255,0.1);">
-                <span style="font-size: 10px; font-weight: bold; color: #888; letter-spacing: 0.5px;">ESTILO DE MESA:</span>
-                <div style="display: flex; gap: 4px;">
-                    <button id="btn-theme-neon" class="btn" style="padding: 4px 8px; font-size: 11px; font-weight: bold; border-radius: 4px; border: 1px solid #00ffff; background: #00ffff; color: #110520; cursor: pointer; transition: all 0.2s;">💎 NÉON</button>
-                    <button id="btn-theme-classic" class="btn" style="padding: 4px 8px; font-size: 11px; font-weight: bold; border-radius: 4px; border: 1px solid #d4af37; background: transparent; color: #d4af37; cursor: pointer; transition: all 0.2s;">🪵 CLÁSSICO</button>
+            <div class="dashboard-panel">
+                <!-- Bloco 1: Gestão de Ficheiros da Oficina -->
+                <div class="dash-block">
+                    <div class="dash-header">💾 OFICINA</div>
+                    <div class="dash-row">
+                        <input type="text" id="table-name-input" placeholder="Nome da mesa...">
+                        <button id="btn-save-api" title="Gravar na Oficina">GRAVAR</button>
+                    </div>
+                    <div class="dash-row">
+                        <select id="table-select"><option value="">-- Mesa --</option></select>
+                        <button id="btn-load-api" title="Carregar da Base de Dados">📂</button>
+                        <button id="btn-import-file" title="Importar Ficheiro">📥</button>
+                        <button id="btn-delete-api" title="Apagar Totalmente">🗑️</button>
+                    </div>
+                </div>
+
+                <!-- Bloco 2: Definições Físicas e Visuais -->
+                <div class="dash-block">
+                    <div class="dash-header">⚙️ CONFIGS</div>
+                    <div class="dash-row spaced" style="justify-content: space-between; margin-bottom: 2px;">
+                        <span style="font-size: 10px; color: #aaa; font-weight:800;">TEMA:</span>
+                        <div style="display: flex; gap: 4px;">
+                            <button id="btn-theme-neon" class="btn" style="padding: 4px 8px; font-size: 11px; font-weight: bold; border-radius: 4px; border: 1px solid #00ffff; cursor: pointer;">💎 NÉON</button>
+                            <button id="btn-theme-classic" class="btn" style="padding: 4px 8px; font-size: 11px; font-weight: bold; border-radius: 4px; border: 1px solid #d4af37; background: transparent; color: #d4af37; cursor: pointer;">🪵 CLÁSSICO</button>
+                        </div>
+                    </div>
+                    <div class="dash-row" style="flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 2px;">
+                        <label style="font-size: 10px; color: #aaa; font-weight: 800; letter-spacing: 0.5px;">INCLINAÇÃO: <span id="grav-val" style="color: #fff; font-weight: bold;">1.0</span></label>
+                        <input type="range" id="gravity-slider" min="0.5" max="2.0" step="0.1" value="1.0" style="width: 100%; margin: 0; accent-color: var(--accent);">
+                    </div>
+                </div>
+
+                <!-- Bloco 3: Ações Finais e Jogabilidade -->
+                <div class="dash-block actions-block">
+                    <div class="dash-header">⚡ ACÇÕES</div>
+                    <div class="dash-row" style="flex-direction: column; gap: 6px; width: 100%; justify-content: center; flex: 1;">
+                        <button id="btn-play" class="btn-primary" style="width: 100%; padding: 10px; font-size: 14px; letter-spacing: 1.5px; border-radius: 6px;">JOGAR 🚀</button>
+                        <button id="btn-edit" class="btn-secondary hidden" style="width: 100%; padding: 10px; font-size: 14px; border-radius: 6px;">EDITAR 🛠️</button>
+                        <button id="btn-clear" class="btn-danger" style="width: 100%; padding: 6px; font-size: 11px; margin-top: 0; border-radius: 6px;">LIMPAR 🗑️</button>
+                    </div>
                 </div>
             </div>
+            
+            <input type="file" id="file-input" accept=".json,*" style="display: none;">
             
             <div class="section-title">COMPONENTES</div>
             <div class="component-categories">
@@ -234,37 +270,6 @@
                 </div>
             </div>
 
-            <div class="section-title">MESA</div>
-            <div class="settings">
-                <label>Inclinação: <span id="grav-val">1.0</span></label>
-                <input type="range" id="gravity-slider" min="0.5" max="2.0" step="0.1" value="1.0">
-            </div>
-
-            <div class="section-title">OFICINA DE MESAS</div>
-            <div class="table-manager" style="display:flex; flex-direction: column; gap: 8px; margin-bottom: 20px;">
-                <input type="text" id="table-name-input" placeholder="Nome da nova mesa..." style="width: 100%; padding: 8px; border-radius: 4px; border: none; background: #333; color: white; box-sizing: border-box;">
-                <button id="btn-save-api" class="btn" style="background: #4caf50; color: white;">💾 Gravar na Oficina</button>
-                
-                <div class="divider" style="margin: 10px 0;"></div>
-                
-                <select id="table-select" style="width: 100%; padding: 8px; border-radius: 4px; border: none; background: #333; color: white; box-sizing: border-box;">
-                    <option value="">-- Selecionar Mesa --</option>
-                </select>
-                <div style="display: flex; gap: 8px;">
-                    <button id="btn-load-api" class="btn" style="flex: 1; background: #2196f3; color: white;">📂 Carregar</button>
-                    <button id="btn-import-file" class="btn" style="flex: 1; background: #673ab7; color: white;">📥 Importar</button>
-                </div>
-                <div style="display: flex; gap: 8px; margin-top: 6px;">
-                    <button id="btn-delete-api" class="btn" style="flex: 1; background: #ff0055; color: white; font-weight: bold; border: 1px solid rgba(255, 255, 255, 0.15);">🗑️ Apagar da VPS</button>
-                </div>
-                <input type="file" id="file-input" accept=".json,*" style="display: none;">
-            </div>
-
-            <div class="actions">
-                <button id="btn-play" class="btn-primary">JOGAR 🚀</button>
-                <button id="btn-edit" class="btn-secondary hidden">EDITAR 🛠️</button>
-                <button id="btn-clear" class="btn-danger">LIMPAR 🗑️</button>
-            </div>
         </aside>
 
         <main id="editor-container">
@@ -281,10 +286,11 @@
                             </svg>
                         </button>
                         <div id="settings-dropdown" class="hidden">
+                            <button id="btn-rules" class="dropdown-btn">📜 REGRAS</button>
                             <button id="btn-sound-toggle" class="dropdown-btn">🔊 SOM</button>
                             <button id="btn-nudge" class="dropdown-btn">📳 ABANAR</button>
                             <button id="btn-fullscreen" class="dropdown-btn">📱 ECRÃ</button>
-                            <button id="btn-theme-toggle" class="dropdown-btn">💎 NÉON</button>
+                            <button id="btn-theme-toggle" class="dropdown-btn">🪵 CLÁSSICO</button>
                             <button id="btn-goto-workshop" class="dropdown-btn">🛠️ OFICINA</button>
                             <button id="btn-reset-ball" class="dropdown-btn">🚪 SAIR</button>
                         </div>
@@ -293,9 +299,6 @@
                 <div id="canvas-wrapper">
                     <div id="grid-overlay"></div>
                     <canvas id="game-canvas"></canvas>
-                    <div id="launch-hint" class="hidden">
-                        CARREGUE EM [A] E [D] PARA LANÇAR A BOLA 🚀
-                    </div>
                 </div>
                 <!-- Botões de Flipper Mobile -->
                 <div id="mobile-flipper-buttons" class="hidden">
@@ -327,6 +330,36 @@
                 <button id="modal-btn-exit" class="btn-secondary" style="flex: 1; min-width: 120px; padding: 12px; font-weight: bold; border-radius: 8px;">WORKSHOP 🛠️</button>
                 <button id="modal-btn-hub" class="btn-danger" style="width: 100%; padding: 10px; font-weight: bold; border-radius: 8px; background: rgba(255, 0, 85, 0.15); border: 1px solid #ff0055; color: #fff; margin-top: 4px;">🚪 MENU PRINCIPAL</button>
             </div>
+        </div>
+    </div>
+
+    <!-- Modal de Instruções / Regras (Help Overlay) -->
+    <div id="rules-modal" class="hidden">
+        <div class="modal-content rules-content" style="max-width: 480px; text-align: left; overflow-y: auto; max-height: 85vh; border-top: 4px solid #00ffff;">
+            <h2 style="font-family: 'Orbitron', sans-serif; letter-spacing: 2px; color: #00ffff; text-align: center; border-bottom: 1px solid rgba(0,255,255,0.3); padding-bottom: 10px; margin-bottom: 15px;">GUIA DE ARCADA</h2>
+            
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: bold; color: #fff; margin-top: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <span style="background: #00ffff; width: 4px; height: 14px; border-radius: 2px;"></span> 🎮 CONTROLOS (PC)
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 5px;">
+                <div style="background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between;"><span style="color:#aaa;">Mover Flippers</span><strong>⬅️ ➡️ ou A / D</strong></div>
+                <div style="background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between;"><span style="color:#aaa;">Carregar Mola</span><strong>SPACE ou ⬇️</strong></div>
+                <div style="background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between;"><span style="color:#aaa;">Abanar Mesa (Nudge)</span><strong>⬆️ ou N</strong></div>
+                <div style="background: rgba(0,255,255,0.1); padding: 8px 12px; border-radius: 6px; font-size: 11px; color: #00ffff; border: 1px solid rgba(0,255,255,0.2); text-align: center; font-weight: bold;">💡 Dica: Carregar em AMBOS os Flippers também dispara a mola!</div>
+            </div>
+
+            <div style="font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: bold; color: #fff; margin-top: 20px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                <span style="background: #ff00ff; width: 4px; height: 14px; border-radius: 2px;"></span> 🧭 OBJECTOS DA MESA
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px;">
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 8px;"><strong style="color: #ffeb3b;">🎯 ALVOS:</strong> Derruba todos os alvos acesos para desbloquear combos e multiplicar o teu score!</div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 8px;"><strong style="color: #00ffff;">💥 BUMPERS:</strong> Quanto mais rápido a bola bater neles, maior é a força do ressalto e o somatório de pontos.</div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 8px;"><strong style="color: #ff00ff;">🌀 ROLETA:</strong> Roda ao impacto da bola. Gera energia elétrica que multiplica instantaneamente os pontos acumulados!</div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 8px;"><strong style="color: #4caf50;">🟢 BURACO PROTEGIDO:</strong> Fica trancado até acenderes as luzes do radar. Uma vez aberto, suga a bola e liberta uma BOLA EXTRA de bónus!</div>
+                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 8px;"><strong style="color: #ff5722;">⚡ PAREDE ELÁSTICA:</strong> Responde com fúria a qualquer impacto lateral. Cuidado com o trajeto de retorno!</div>
+            </div>
+
+            <button id="btn-close-rules" class="btn-primary" style="width: 100%; margin-top: 20px; padding: 14px; font-weight: 900; letter-spacing: 1px; border-radius: 8px;">ENTENDIDO 👍</button>
         </div>
     </div>
 
