@@ -2157,6 +2157,32 @@ const runGameSimulation = (isWarping = false) => {
             sounds.playScoreMilestone();
             
             setTimeout(() => {
+                // 1. Encontrar o portal usado e apagar as suas luzes no clone do pai ANTES de restaurar a simulação
+                if (sourcePortalHoleOriginal) {
+                    const pType = sourcePortalHoleOriginal.type; // ex: 'hole-g'
+                    const targetLightType = pType === 'hole-g' ? 'light-g' : 
+                                            pType === 'hole-r' ? 'light-r' : 
+                                            pType === 'hole-b' ? 'light-b' : 'light-y';
+                    
+                    parentTableComponents.forEach((c: any) => {
+                        // Apagar especificamente as luzes deste grupo na mesa pai antes de a restaurar
+                        if (c.type === 'light' || c.type.startsWith('light-')) {
+                            const isThisGreen = c.type === 'light' || c.type === 'light-g';
+                            if ((targetLightType === 'light-g' && isThisGreen) || (c.type === targetLightType)) {
+                                c.active = false;
+                            }
+                        }
+                        
+                        // Fechar especificamente o portal usado no JSON clonado
+                        if (c.type === sourcePortalHoleOriginal.type &&
+                            Math.abs(c.x - sourcePortalHoleOriginal.x) < 1 &&
+                            Math.abs(c.y - sourcePortalHoleOriginal.y) < 1) {
+                            c.gateOpen = false;
+                            c.active = false;
+                        }
+                    });
+                }
+
                 // Restaurar estado do pai
                 components = parentTableComponents;
                 score = parentScore;
@@ -2173,12 +2199,19 @@ const runGameSimulation = (isWarping = false) => {
                 ballsLeft = parentBallsLeft;
                 updateScore(0); updateBallsDisplay();
                 
-                // Encontrar o buraco de portal original para re-ejetar a bola
+                // Encontrar o buraco de portal correspondente no novo mundo físico via coordenadas (seguro contra clones)
                 let originalHoleBody = null;
-                for (let b = world.getBodyList(); b; b = b.getNext()) {
-                    const d = b.getUserData();
-                    if (d?.original === sourcePortalHoleOriginal) {
-                        originalHoleBody = b; break;
+                if (sourcePortalHoleOriginal) {
+                    for (let b = world.getBodyList(); b; b = b.getNext()) {
+                        const d = b.getUserData();
+                        if (d?.type === 'protected-hole' && d.original) {
+                            if (d.original.type === sourcePortalHoleOriginal.type &&
+                                Math.abs(d.original.x - sourcePortalHoleOriginal.x) < 1 &&
+                                Math.abs(d.original.y - sourcePortalHoleOriginal.y) < 1) {
+                                originalHoleBody = b;
+                                break;
+                            }
+                        }
                     }
                 }
                 
@@ -2189,6 +2222,12 @@ const runGameSimulation = (isWarping = false) => {
                     dHole.trapped = true;
                     dHole.hadBall = true;
                     dHole.gateOpen = true;
+                    
+                    // Destruir o fixture temporariamente para que a bola seja ejetada sem colisões contra a parede que fechou
+                    if (dHole.gateFixture) {
+                        originalHoleBody.destroyFixture(dHole.gateFixture);
+                        dHole.gateFixture = null;
+                    }
                     
                     const offsetWorld = Vec2(-Math.sin(hAngle) * pxToM(-5), Math.cos(hAngle) * pxToM(-5));
                     marbleBody.setPosition(Vec2.add(hPos, offsetWorld));
@@ -2207,6 +2246,10 @@ const runGameSimulation = (isWarping = false) => {
                             dHole.gateOpen = false;
                             dHole.active = false;
                             dHole.hadBall = false;
+                            if (dHole.original) {
+                                dHole.original.gateOpen = false;
+                                dHole.original.active = false;
+                            }
                             if (!dHole.gateFixture) {
                                 dHole.gateFixture = originalHoleBody.createFixture(planck.Box(pxToM(26), pxToM(2), Vec2(0, pxToM(26)), 0), { restitution: 0.2 });
                             }
