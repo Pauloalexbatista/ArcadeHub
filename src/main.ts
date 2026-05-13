@@ -3085,6 +3085,47 @@ const runGameSimulation = (isWarping = false) => {
             ctx.restore();
         }
 
+        // NOVO: Desenhar HUD do Prego Salvador Ativo (Contador Decrescente)
+        if (isPlaying && pregoActiveTimer > now) {
+            const timeLeftMs = pregoActiveTimer - now;
+            const secondsLeft = Math.ceil(timeLeftMs / 1000);
+            
+            ctx.save();
+            // Posicionado discretamente mas visível no canto superior esquerdo da mesa
+            ctx.translate(15, 20);
+            
+            const isWarning = secondsLeft <= 5; // Piscar rápido de aviso nos últimos 5s
+            const pulseFast = isWarning ? (0.6 + 0.4 * Math.sin(now * 0.025)) : 1.0;
+            
+            // Laranja elétrico neon no tema sci-fi e castanho vintage profundo no tema retro
+            const hudColor = activeTheme === 'retro' ? '#d84315' : '#ff9800';
+            
+            // Fundo estilo vidro/acrílico semi-translúcido
+            ctx.fillStyle = activeTheme === 'retro' ? 'rgba(186, 146, 97, 0.9)' : 'rgba(5, 2, 10, 0.85)';
+            ctx.strokeStyle = hudColor;
+            ctx.lineWidth = 2;
+            
+            if (activeTheme !== 'retro') {
+                ctx.shadowBlur = isWarning ? 15 : 10;
+                ctx.shadowColor = hudColor;
+            }
+            
+            ctx.beginPath();
+            ctx.roundRect(0, 0, 90, 30, 8);
+            ctx.fill(); ctx.stroke();
+            
+            // Desenhar Texto do Escudo e Contador Digital
+            ctx.shadowBlur = 0;
+            ctx.globalAlpha = pulseFast;
+            ctx.fillStyle = activeTheme === 'retro' ? '#3e2723' : '#ffffff';
+            ctx.font = "900 14px 'Orbitron', Courier, sans-serif";
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            ctx.fillText(`🛡️ ${secondsLeft}S`, 45, 15);
+            ctx.restore();
+        }
+
         // Condição de Morte removida (Agora feita por Sensor)
         
         animationId = requestAnimationFrame(step);
