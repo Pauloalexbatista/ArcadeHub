@@ -279,7 +279,10 @@
                         <span id="canvas-score">0</span>
                     </div>
                     <div id="header-right">
-                        <span id="canvas-balls">BOLAS: 3</span>
+                        <div id="canvas-balls" title="Bolas Restantes">
+                            <span class="ball-indicator-icon"></span>
+                            <span class="ball-indicator-text">3</span>
+                        </div>
                         <button id="btn-settings-toggle" title="Opções">
                             <svg class="cog-icon" viewBox="0 0 24 24" width="22" height="22" style="display: block; pointer-events: none;">
                                 <path fill="currentColor" d="M12,15.5A3.5,3.5 0 0,1 8.5,12A3.5,3.5 0 0,1 12,8.5A3.5,3.5 0 0,1 15.5,12A3.5,3.5 0 0,1 12,15.5M19.43,12.97C19.47,12.65 19.5,12.33 19.5,12C19.5,11.67 19.47,11.34 19.43,11L21.54,9.37C21.73,9.22 21.78,8.95 21.66,8.73L19.66,5.27C19.54,5.05 19.27,4.96 19.05,5.05L16.56,6.05C16.04,5.66 15.47,5.34 14.86,5.08L14.47,2.42C14.43,2.18 14.22,2 13.97,2H9.97C9.72,2 9.51,2.18 9.47,2.42L9.08,5.08C8.47,5.34 7.9,5.66 7.38,6.05L4.89,5.05C4.67,4.96 4.4,5.05 4.27,5.27L2.27,8.73C2.15,8.95 2.2,9.22 2.39,9.37L4.5,11C4.46,11.33 4.44,11.66 4.44,12C4.44,12.33 4.46,12.66 4.5,12.97L2.39,14.63C2.2,14.78 2.15,15.05 2.27,15.27L4.27,18.73C4.4,18.95 4.67,19.04 4.89,18.95L7.38,17.95C7.9,18.34 8.47,18.66 9.08,18.92L9.08,21.58C9.51,21.82 9.72,22 9.97,22H13.97C14.22,22 14.43,21.82 14.47,21.58L14.86,18.92C15.47,18.66 16.04,18.34 16.56,17.95L19.05,18.95C19.27,19.04 19.54,18.95 19.66,18.73L21.66,15.27C21.78,15.05 21.73,14.78 21.54,14.63L19.43,12.97Z" />
@@ -328,6 +331,7 @@
             <div class="modal-actions" style="display: flex; gap: 8px; flex-wrap: wrap;">
                 <button id="modal-btn-play" class="btn-primary" style="flex: 1; min-width: 120px; padding: 12px; font-weight: bold; border-radius: 8px;">JOGAR 🚀</button>
                 <button id="modal-btn-exit" class="btn-secondary" style="flex: 1; min-width: 120px; padding: 12px; font-weight: bold; border-radius: 8px;">WORKSHOP 🛠️</button>
+                <button id="modal-btn-share" class="btn-whatsapp" style="width: 100%; padding: 10px; font-weight: bold; border-radius: 8px; background: rgba(37, 211, 102, 0.15); border: 1px solid #25D366; color: #fff; font-family: 'Orbitron', sans-serif; cursor: pointer; transition: all 0.2s; margin-top: 4px;">📲 PARTILHAR RECORDES (WHATSAPP)</button>
                 <button id="modal-btn-hub" class="btn-danger" style="width: 100%; padding: 10px; font-weight: bold; border-radius: 8px; background: rgba(255, 0, 85, 0.15); border: 1px solid #ff0055; color: #fff; margin-top: 4px;">🚪 MENU PRINCIPAL</button>
             </div>
         </div>
@@ -335,31 +339,80 @@
 
     <!-- Modal de Instruções / Regras (Help Overlay) -->
     <div id="rules-modal" class="hidden">
-        <div class="modal-content rules-content" style="max-width: 480px; text-align: left; overflow-y: auto; max-height: 85vh; border-top: 4px solid #00ffff;">
-            <h2 style="font-family: 'Orbitron', sans-serif; letter-spacing: 2px; color: #00ffff; text-align: center; border-bottom: 1px solid rgba(0,255,255,0.3); padding-bottom: 10px; margin-bottom: 15px;">GUIA DE ARCADA</h2>
+        <div class="modal-content rules-content" style="max-width: 520px; text-align: left; overflow: hidden; display: flex; flex-direction: column; max-height: 90vh; border-top: 4px solid #00ffff; padding: 20px;">
+            <h2 style="font-family: 'Orbitron', sans-serif; letter-spacing: 2px; color: #00ffff; text-align: center; border-bottom: 1px solid rgba(0,255,255,0.2); padding-bottom: 8px; margin-bottom: 12px;">MANUAL DA OFICINA</h2>
             
-            <div style="font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: bold; color: #fff; margin-top: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                <span style="background: #00ffff; width: 4px; height: 14px; border-radius: 2px;"></span> 🎮 CONTROLOS (PC)
+            <!-- Navegação por Páginas -->
+            <div class="rules-tabs" style="display: flex; justify-content: space-between; margin-bottom: 12px; border-bottom: 2px solid rgba(255,255,255,0.08);">
+                <button class="rules-tab active" data-tab="tab-basic" style="flex: 1; padding: 8px; background: none; border: none; border-bottom: 3px solid #00ffff; color: #fff; font-family: 'Orbitron'; font-size: 11px; font-weight: bold; cursor: pointer; outline: none; transition: all 0.2s;">1. BÁSICO 🎮</button>
+                <button class="rules-tab" data-tab="tab-parts" style="flex: 1; padding: 8px; background: none; border: none; border-bottom: 3px solid transparent; color: #888; font-family: 'Orbitron'; font-size: 11px; font-weight: bold; cursor: pointer; outline: none; transition: all 0.2s;">2. PEÇAS 🧱</button>
+                <button class="rules-tab" data-tab="tab-missions" style="flex: 1; padding: 8px; background: none; border: none; border-bottom: 3px solid transparent; color: #888; font-family: 'Orbitron'; font-size: 11px; font-weight: bold; cursor: pointer; outline: none; transition: all 0.2s;">3. MISSÕES 🏆</button>
             </div>
-            <div style="display: flex; flex-direction: column; gap: 5px;">
-                <div style="background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between;"><span style="color:#aaa;">Mover Flippers</span><strong>⬅️ ➡️ ou A / D</strong></div>
-                <div style="background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between;"><span style="color:#aaa;">Carregar Mola</span><strong>SPACE ou ⬇️</strong></div>
-                <div style="background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between;"><span style="color:#aaa;">Abanar Mesa (Nudge)</span><strong>⬆️ ou N</strong></div>
-                <div style="background: rgba(0,255,255,0.1); padding: 8px 12px; border-radius: 6px; font-size: 11px; color: #00ffff; border: 1px solid rgba(0,255,255,0.2); text-align: center; font-weight: bold;">💡 Dica: Carregar em AMBOS os Flippers também dispara a mola!</div>
+            
+            <!-- Zona de Scroll do Conteúdo -->
+            <div class="rules-pages-container" style="overflow-y: auto; flex: 1; padding-right: 6px; font-family: 'Orbitron', sans-serif; font-size: 12px;">
+                
+                <!-- Página 1: Básicos e Controlos -->
+                <div id="tab-basic" class="rules-page">
+                    <div style="font-size: 12px; font-weight: bold; color: #fff; margin-top: 5px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <span style="background: #00ffff; width: 4px; height: 14px; border-radius: 2px;"></span> CONTROLOS NO PC
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px; margin-bottom: 15px;">
+                        <div style="background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between;"><span style="color:#aaa;">Mover Flippers</span><strong>⬅️ ➡️ ou A / D</strong></div>
+                        <div style="background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between;"><span style="color:#aaa;">Carregar Mola</span><strong>SPACE ou ⬇️</strong></div>
+                        <div style="background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 6px; font-size: 13px; display: flex; justify-content: space-between;"><span style="color:#aaa;">Abanar Mesa (Nudge)</span><strong>⬆️ ou N</strong></div>
+                        <div style="background: rgba(0,255,255,0.08); padding: 8px; border-radius: 6px; font-size: 11px; color: #00ffff; border: 1px solid rgba(0,255,255,0.2); text-align: center;">💡 Dica: Pressionar ambos os flippers também dispara a mola!</div>
+                    </div>
+
+                    <div style="font-size: 12px; font-weight: bold; color: #fff; margin-top: 15px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
+                        <span style="background: #ff00ff; width: 4px; height: 14px; border-radius: 2px;"></span> CONTROLOS TELEMÓVEL / TABLET
+                    </div>
+                    <div style="display: flex; flex-direction: column; gap: 5px;">
+                        <div style="background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 6px; font-size: 12px;"><strong style="color: #ff00ff;">Flippers:</strong> Toca na área inferior esquerda ou direita do ecrã.</div>
+                        <div style="background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 6px; font-size: 12px;"><strong style="color: #ff00ff;">Lançamento:</strong> Toca e solta com os dois dedos ao mesmo tempo!</div>
+                        <div style="background: rgba(255,255,255,0.04); padding: 8px 12px; border-radius: 6px; font-size: 12px;"><strong style="color: #ff00ff;">Sacudir Mesa:</strong> Dá um pequeno abanão físico no telemóvel para desviar a bola através do acelerómetro!</div>
+                    </div>
+                </div>
+                
+                <!-- Página 2: Peças & Estruturas -->
+                <div id="tab-parts" class="rules-page hidden">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 8px;">
+                            <strong style="color: #00ffff;">💥 BUMPERS (REDONDOS & TRIANGULARES):</strong> Rebate a bola brutalmente. A força e a pontuação escalam drasticamente consoante a velocidade do impacto!
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 8px;">
+                            <strong style="color: #ffa500;">🛡️ PINO SALVADOR (ESCUDO):</strong> Um prego energético rotativo na base da mesa que ressalta a bola e evita que ela caia! Dura apenas 30 segundos.
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 8px;">
+                            <strong style="color: #ff00ff;">⚡ PAREDE ELÁSTICA:</strong> Devolve a pancada com enorme energia lateral, disparando a bola na direção perpendicular de regresso ao topo.
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 8px;">
+                            <strong style="color: #888888;">📌 PINO / PREGO:</strong> Um pequeno poste sólido passivo ideal para afunilar caminhos e fragmentar a trajetória física.
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Página 3: Mecânicas Avançadas & Missões -->
+                <div id="tab-missions" class="rules-page hidden">
+                    <div style="display: flex; flex-direction: column; gap: 8px;">
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 8px; border-radius: 8px;">
+                            <strong style="color: #ffeb3b;">🎯 ALVOS:</strong> Derruba todos os alvos ativos para subir o nível do Jackpot de ronda e repor todos os alvos de pé! Acerta 9 vezes no Alvo Permanente para ativar o Escudo Salvador!
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 8px; border-radius: 8px;">
+                            <strong style="color: #00ff00;">🟢 BURACO PROTEGIDO & PORTAIS:</strong> Começam trancados. Liga todas as luzes neon da respetiva cor para os abrir! Uma vez abertos, capturam a bola (+3.000 pts) e podem teleportar para outra mesa se configurados como Portais 🌀!
+                        </div>
+                        <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 8px; border-radius: 8px;">
+                            <strong style="color: #00ffff;">🎰 ROLETA & SLOT MACHINE:</strong> Passar em spinners e roletas muda as suas cores e ativa o giro das Slot Machines (Luzes Agrupadas). Alinha cores para Jackpots de +2.500 pts ou Super Jackpots com Bola Extra!
+                        </div>
+                        <div style="background: rgba(0,255,255,0.1); border: 1px solid rgba(0,255,255,0.2); padding: 8px; border-radius: 8px; text-align: center; font-weight: bold;">
+                            🎒 MISSÃO DOS BURACOS: Visita TODOS os buracos normais de uma mesa para ganhares uma BOLA EXTRA instantânea!
+                        </div>
+                    </div>
+                </div>
+                
             </div>
 
-            <div style="font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: bold; color: #fff; margin-top: 20px; margin-bottom: 8px; display: flex; align-items: center; gap: 6px;">
-                <span style="background: #ff00ff; width: 4px; height: 14px; border-radius: 2px;"></span> 🧭 OBJECTOS DA MESA
-            </div>
-            <div style="display: flex; flex-direction: column; gap: 6px; font-size: 12px;">
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 8px;"><strong style="color: #ffeb3b;">🎯 ALVOS:</strong> Derruba todos os alvos acesos para desbloquear combos e multiplicar o teu score!</div>
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 8px;"><strong style="color: #00ffff;">💥 BUMPERS:</strong> Quanto mais rápido a bola bater neles, maior é a força do ressalto e o somatório de pontos.</div>
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 8px;"><strong style="color: #ff00ff;">🌀 ROLETA:</strong> Roda ao impacto da bola. Gera energia elétrica que multiplica instantaneamente os pontos acumulados!</div>
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 8px;"><strong style="color: #4caf50;">🟢 BURACO PROTEGIDO:</strong> Fica trancado até acenderes as luzes do radar. Uma vez aberto, suga a bola e liberta uma BOLA EXTRA de bónus!</div>
-                <div style="background: rgba(255,255,255,0.03); border: 1px solid rgba(255,255,255,0.06); padding: 10px; border-radius: 8px;"><strong style="color: #ff5722;">⚡ PAREDE ELÁSTICA:</strong> Responde com fúria a qualquer impacto lateral. Cuidado com o trajeto de retorno!</div>
-            </div>
-
-            <button id="btn-close-rules" class="btn-primary" style="width: 100%; margin-top: 20px; padding: 14px; font-weight: 900; letter-spacing: 1px; border-radius: 8px;">ENTENDIDO 👍</button>
+            <button id="btn-close-rules" class="btn-primary" style="width: 100%; margin-top: 15px; padding: 12px; font-weight: 900; letter-spacing: 1px; border-radius: 8px;">ENTENDIDO 👍</button>
         </div>
     </div>
 

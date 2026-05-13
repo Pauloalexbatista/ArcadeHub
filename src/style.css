@@ -242,11 +242,49 @@ button:hover { opacity: 0.8; }
 }
 
 #canvas-balls {
-    font-size: 13px;
-    color: #00ffff;
-    text-shadow: 0 0 5px #00ffff;
-    font-weight: bold;
-    letter-spacing: 1px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 18px;
+    color: #ffffff;
+    font-weight: 900;
+    background: rgba(0, 255, 255, 0.15);
+    border: 1.5px solid rgba(0, 255, 255, 0.4);
+    border-radius: 20px;
+    padding: 4px 10px;
+    box-shadow: 0 0 10px rgba(0, 255, 255, 0.1);
+    cursor: default;
+    user-select: none;
+}
+
+.ball-indicator-icon {
+    display: block;
+    width: 12px;
+    height: 12px;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, #ffffff 0%, #b0bec5 45%, #78909c 100%);
+    box-shadow: 0 0 8px rgba(255,255,255,0.5), inset 0 -2px 3px rgba(0,0,0,0.3);
+}
+
+.ball-indicator-text {
+    font-family: 'Orbitron', sans-serif;
+    text-shadow: 0 0 8px #00ffff;
+    line-height: 1;
+}
+
+/* Adaptação Retro do Indicador de Bolas */
+body.retro-theme #canvas-balls {
+    background: #edd5a1;
+    border-color: #3e2723;
+    color: #3e2723;
+    box-shadow: inset 0 1px 3px rgba(0,0,0,0.2);
+}
+body.retro-theme .ball-indicator-icon {
+    background: radial-gradient(circle at 35% 35%, #5d4037 0%, #111 100%);
+    box-shadow: inset 0 1px 2px rgba(255,255,255,0.2);
+}
+body.retro-theme .ball-indicator-text {
+    text-shadow: none;
 }
 
 #btn-settings-toggle {
@@ -1146,3 +1184,43 @@ body.retro-theme .flipper-button:active {
 #rules-modal.hidden {
     display: none !important;
 }
+
+/* Botão WhatsApp e Novas Interações Premium */
+.btn-whatsapp:hover {
+    background: rgba(37, 211, 102, 0.35) !important;
+    box-shadow: 0 0 15px rgba(37, 211, 102, 0.5), inset 0 0 10px rgba(37, 211, 102, 0.3);
+    transform: translateY(-1px);
+    border-color: #34d874 !important;
+}
+
+.btn-whatsapp:active {
+    transform: translateY(1px);
+    box-shadow: 0 0 5px rgba(37, 211, 102, 0.3);
+}
+
+/* Personalização da scrollbar interna do modal de regras para fluidez estética */
+.rules-pages-container::-webkit-scrollbar {
+    width: 6px;
+}
+.rules-pages-container::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 4px;
+}
+.rules-pages-container::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 255, 0.25);
+    border-radius: 4px;
+}
+.rules-pages-container::-webkit-scrollbar-thumb:hover {
+    background: rgba(0, 255, 255, 0.5);
+}
+
+/* Transição suave ao mudar de abas */
+.rules-page {
+    animation: fadeInTab 0.25s ease-out;
+}
+
+@keyframes fadeInTab {
+    from { opacity: 0; transform: translateY(5px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+

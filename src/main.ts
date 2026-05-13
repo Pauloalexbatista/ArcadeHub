@@ -441,8 +441,8 @@ const showDisplayMessage = (msg: string, color = '#00ffff', duration = 2000) => 
 };
 
 const updateBallsDisplay = () => {
-    const ballsEl = document.getElementById('canvas-balls');
-    if (ballsEl) ballsEl.innerText = `BOLAS: ${ballsLeft}`;
+    const textEl = document.querySelector('#canvas-balls .ball-indicator-text');
+    if (textEl) textEl.textContent = `${ballsLeft}`;
 };
 
 const formatScore = (num: number) => {
@@ -1784,6 +1784,88 @@ const getHighscoresForTable = (tableName: string) => {
     return stored ? JSON.parse(stored) : [];
 };
 
+const exportAndShareHighscores = () => {
+    const allScores: Record<string, any> = {};
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith('highscores_')) {
+            const tableName = key.replace('highscores_', '');
+            try {
+                allScores[tableName] = JSON.parse(localStorage.getItem(key) || '[]');
+            } catch(e) {}
+        }
+    }
+    
+    // Codificar JSON string para Base64 suportando caracteres UTF-8 de forma robusta
+    const jsonStr = JSON.stringify(allScores);
+    const base64 = btoa(String.fromCharCode.apply(null, Array.from(new TextEncoder().encode(jsonStr))));
+    
+    const shareUrl = `${window.location.origin}${window.location.pathname}?import=${encodeURIComponent(base64)}`;
+    
+    const text = `Desafio-te para uma partida no Oficina Pinball! 🏆\nClica no link para importares e bateres os meus recordes:\n${shareUrl}`;
+    const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
+    
+    window.open(whatsappUrl, '_blank');
+};
+
+const checkAndImportHighscores = () => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const importData = urlParams.get('import');
+    if (!importData) return;
+    
+    try {
+        // Limpar o URL imediatamente para evitar ciclos de importação desnecessários
+        const cleanUrl = window.location.origin + window.location.pathname;
+        window.history.replaceState({}, document.title, cleanUrl);
+        
+        const jsonStr = new TextDecoder().decode(Uint8Array.from(atob(decodeURIComponent(importData)), c => c.charCodeAt(0)));
+        const sharedScores = JSON.parse(jsonStr);
+        
+        // Aguardar 1.2s para dar tempo de o sistema ecrã inicial ter inicializado
+        setTimeout(() => {
+            if (confirm("🏆 RECORDES PARTILHADOS ENCONTRADOS!\n\nDesejas consolidar e importar os recordes partilhados pelo teu amigo?\n\nOs recordes das mesas comuns serão fundidos mantendo os TOP 10 melhores de cada uma na tua memória local.")) {
+                let count = 0;
+                for (const [tableName, scores] of Object.entries(sharedScores)) {
+                    if (!Array.isArray(scores)) continue;
+                    
+                    const localKey = `highscores_${tableName}`;
+                    const localScores = JSON.parse(localStorage.getItem(localKey) || '[]');
+                    
+                    // Consolidar eliminando duplicados (nome + pontuação idênticos)
+                    const mergedMap = new Map<string, any>();
+                    
+                    localScores.forEach((s: any) => {
+                        const key = `${s.name}-${s.score}`;
+                        mergedMap.set(key, s);
+                    });
+                    
+                    scores.forEach((s: any) => {
+                        const key = `${s.name}-${s.score}`;
+                        if (!mergedMap.has(key)) {
+                            mergedMap.set(key, s);
+                        }
+                    });
+                    
+                    // Reordenar por score e reter apenas o top 10 da fusão
+                    const sortedMerged = Array.from(mergedMap.values())
+                        .sort((a, b) => (b.score || 0) - (a.score || 0))
+                        .slice(0, 10);
+                    
+                    localStorage.setItem(localKey, JSON.stringify(sortedMerged));
+                    count++;
+                }
+                alert(`🎉 SUCESSO! Foram unificados com êxito recordes de ${count} mesas!`);
+                
+                // Abrir o modal para ver o impacto
+                showHighscoreModal("RECORDES");
+            }
+        }, 1200);
+    } catch (e) {
+        console.error("Erro ao importar recordes:", e);
+        alert("🛑 Erro ao processar o pacote de recordes importado.");
+    }
+};
+
 const createBall = () => {
     if (!world || marbleBody) return;
     const spawnObj = components.find(c => c.type === 'spawn');
@@ -2037,8 +2119,8 @@ const runGameSimulation = (isWarping = false) => {
             // Hole Sensor inside the chamber - Centrado perfeitamente em (0, 0)
             b.createFixture(planck.Circle(Vec2(0, 0), pxToM(16)), { isSensor: true });
             
-            // Portão/Gate fixture: começa fechado (barreira sólida na base) - Centrado em (0, 26)
-            const startOpen = false; // Começa sempre FECHADO para forçar o jogador a acender as luzes!
+            // Portão/Gate fixture: Restaurar estado anterior se viermos de um portal, senão fechado!
+            const startOpen = c.gateOpen || false; 
             const gateFixture = startOpen ? null : b.createFixture(planck.Box(pxToM(26), pxToM(2), Vec2(0, pxToM(26)), 0), { restitution: 0.2 });
             
             b.setUserData({
@@ -3320,9 +3402,41 @@ document.getElementById('btn-settings-toggle')?.addEventListener('click', (e) =>
 document.getElementById('btn-rules')?.addEventListener('click', () => {
     document.getElementById('rules-modal')?.classList.remove('hidden');
     document.getElementById('settings-dropdown')?.classList.add('hidden');
+    
+    // Focar automaticamente o primeiro separador ao abrir o manual!
+    const firstTab = document.querySelector('.rules-tab[data-tab="tab-basic"]');
+    if (firstTab) (firstTab as HTMLElement).click();
 });
 document.getElementById('btn-close-rules')?.addEventListener('click', () => {
     document.getElementById('rules-modal')?.classList.add('hidden');
+});
+
+// Gestão das abas de navegação das páginas de regras
+document.querySelectorAll('.rules-tab').forEach(tabBtn => {
+    tabBtn.addEventListener('click', () => {
+        // Remover ativo de todas as abas e estilizar como passivas
+        document.querySelectorAll('.rules-tab').forEach(b => {
+            const el = b as HTMLElement;
+            el.classList.remove('active');
+            el.style.borderBottomColor = 'transparent';
+            el.style.color = '#888';
+        });
+        
+        // Ativar a aba atual clicada
+        const activeBtn = tabBtn as HTMLElement;
+        activeBtn.classList.add('active');
+        activeBtn.style.borderBottomColor = '#00ffff';
+        activeBtn.style.color = '#fff';
+        
+        // Ocultar todos os blocos de conteúdo de páginas
+        document.querySelectorAll('.rules-page').forEach(page => page.classList.add('hidden'));
+        
+        // Mostrar apenas a página correspondente
+        const tabId = activeBtn.getAttribute('data-tab');
+        if (tabId) {
+            document.getElementById(tabId)?.classList.remove('hidden');
+        }
+    });
 });
 
 document.addEventListener('click', (e) => {
@@ -3826,11 +3940,16 @@ const initArcadeHubNavigation = () => {
 };
 
 // Inicialização Final e Splash Screen
+// Inicialização Final e Splash Screen
 window.addEventListener('load', () => {
     updateHighscoreTableList();
     initMatrixRain();
     initPasswordGate();
     initArcadeHubNavigation();
+    checkAndImportHighscores(); // Detetar e processar importação de recordes caso exista o query parameter!
+    
+    // Hook para botão de partilhar recordes do Whatsapp
+    document.getElementById('modal-btn-share')?.addEventListener('click', exportAndShareHighscores);
     
     // Garantir que os botões estão no estado correto
     document.getElementById('btn-play')?.classList.remove('hidden');
