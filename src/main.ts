@@ -1791,18 +1791,22 @@ const exportAndShareHighscores = () => {
         if (key?.startsWith('highscores_')) {
             const tableName = key.replace('highscores_', '');
             try {
-                allScores[tableName] = JSON.parse(localStorage.getItem(key) || '[]');
+                const raw = localStorage.getItem(key) || '[]';
+                const list = JSON.parse(raw);
+                if (Array.isArray(list) && list.length > 0) {
+                    // COMPACTAÇÃO MÁXIMA: Guardamos apenas [Nome, Score] em vez de objetos JSON com datas ISO gigantes!
+                    // Reduz o payload do URL em cerca de 75%, evitando links gigantescos no Whatsapp!
+                    allScores[tableName] = list.map((item: any) => [item.name || 'ANON', item.score || 0]);
+                }
             } catch(e) {}
         }
     }
     
-    // Codificar JSON string para Base64 suportando caracteres UTF-8 de forma robusta
     const jsonStr = JSON.stringify(allScores);
     const base64 = btoa(String.fromCharCode.apply(null, Array.from(new TextEncoder().encode(jsonStr))));
     
     const shareUrl = `${window.location.origin}${window.location.pathname}?import=${encodeURIComponent(base64)}`;
-    
-    const text = `Desafio-te para uma partida no Oficina Pinball! 🏆\nClica no link para importares e bateres os meus recordes:\n${shareUrl}`;
+    const text = `Desafio-te no Oficina Pinball! 🏆\nFunde os nossos recordes clicando aqui:\n${shareUrl}`;
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     
     window.open(whatsappUrl, '_blank');
@@ -1814,16 +1818,15 @@ const checkAndImportHighscores = () => {
     if (!importData) return;
     
     try {
-        // Limpar o URL imediatamente para evitar ciclos de importação desnecessários
+        // Limpar o URL imediatamente para evitar ciclos de importação redundantes
         const cleanUrl = window.location.origin + window.location.pathname;
         window.history.replaceState({}, document.title, cleanUrl);
         
         const jsonStr = new TextDecoder().decode(Uint8Array.from(atob(decodeURIComponent(importData)), c => c.charCodeAt(0)));
         const sharedScores = JSON.parse(jsonStr);
         
-        // Aguardar 1.2s para dar tempo de o sistema ecrã inicial ter inicializado
         setTimeout(() => {
-            if (confirm("🏆 RECORDES PARTILHADOS ENCONTRADOS!\n\nDesejas consolidar e importar os recordes partilhados pelo teu amigo?\n\nOs recordes das mesas comuns serão fundidos mantendo os TOP 10 melhores de cada uma na tua memória local.")) {
+            if (confirm("🏆 RECORDES PARTILHADOS ENCONTRADOS!\n\nDesejas consolidar e importar os recordes partilhados pelo teu amigo?\n\nOs recordes das mesas comuns serão fundidos mantendo os TOP 10 melhores na tua memória local.")) {
                 let count = 0;
                 for (const [tableName, scores] of Object.entries(sharedScores)) {
                     if (!Array.isArray(scores)) continue;
@@ -1831,22 +1834,40 @@ const checkAndImportHighscores = () => {
                     const localKey = `highscores_${tableName}`;
                     const localScores = JSON.parse(localStorage.getItem(localKey) || '[]');
                     
-                    // Consolidar eliminando duplicados (nome + pontuação idênticos)
+                    // Consolidar eliminando duplicados exatos (mesmo nome + mesma pontuação)
                     const mergedMap = new Map<string, any>();
                     
                     localScores.forEach((s: any) => {
-                        const key = `${s.name}-${s.score}`;
+                        const key = `${(s.name || '').toUpperCase()}-${s.score}`;
                         mergedMap.set(key, s);
                     });
                     
                     scores.forEach((s: any) => {
-                        const key = `${s.name}-${s.score}`;
-                        if (!mergedMap.has(key)) {
-                            mergedMap.set(key, s);
+                        let name = '';
+                        let val = 0;
+                        let dt = new Date().toISOString();
+                        
+                        if (Array.isArray(s)) {
+                            // NOVO FORMATO: [Nome, Pontuação]
+                            name = String(s[0] || 'ANON');
+                            val = Number(s[1] || 0);
+                        } else if (s && typeof s === 'object') {
+                            // COMPATIBILIDADE RETROATIVA: Antigos objetos {name, score, date}
+                            name = String(s.name || 'ANON');
+                            val = Number(s.score || 0);
+                            dt = s.date || dt;
+                        }
+                        
+                        if (name) {
+                            const normName = name.toUpperCase();
+                            const key = `${normName}-${val}`;
+                            if (!mergedMap.has(key)) {
+                                mergedMap.set(key, { name: normName, score: val, date: dt });
+                            }
                         }
                     });
                     
-                    // Reordenar por score e reter apenas o top 10 da fusão
+                    // Reordenar descendentemente e trancar no TOP 10
                     const sortedMerged = Array.from(mergedMap.values())
                         .sort((a, b) => (b.score || 0) - (a.score || 0))
                         .slice(0, 10);
@@ -1855,8 +1876,6 @@ const checkAndImportHighscores = () => {
                     count++;
                 }
                 alert(`🎉 SUCESSO! Foram unificados com êxito recordes de ${count} mesas!`);
-                
-                // Abrir o modal para ver o impacto
                 showHighscoreModal("RECORDES");
             }
         }, 1200);
