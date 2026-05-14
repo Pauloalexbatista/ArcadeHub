@@ -1194,6 +1194,24 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             ctx.beginPath();
             ctx.arc(-2, -2, 1.5, 0, Math.PI * 2);
             ctx.fill();
+            
+            // NOVO: Desenhar contador visual numérico por baixo do pino mágico sem molduras!
+            if (isPlaying && pregoActiveTimer > Date.now()) {
+                const secs = Math.ceil((pregoActiveTimer - Date.now()) / 1000);
+                ctx.font = "bold 12px 'Orbitron', Arial, sans-serif";
+                ctx.textAlign = 'center';
+                ctx.textBaseline = 'top';
+                ctx.shadowBlur = 0;
+                if (activeTheme === 'retro') {
+                    ctx.fillStyle = '#3e2723'; // Castanho vintage retro
+                    ctx.fillText(`${secs}S`, 0, 15);
+                } else {
+                    ctx.fillStyle = '#ffffff';
+                    ctx.shadowColor = '#ffa500'; // Glow laranja neon
+                    ctx.shadowBlur = 8;
+                    ctx.fillText(`${secs}S`, 0, 15);
+                }
+            }
             ctx.restore();
         } else if (!isPlaying) {
             ctx.save();
@@ -1784,7 +1802,7 @@ const getHighscoresForTable = (tableName: string) => {
     return stored ? JSON.parse(stored) : [];
 };
 
-const exportAndShareHighscores = () => {
+const exportAndShareHighscores = async () => {
     const allScores: Record<string, any> = {};
     for (let i = 0; i < localStorage.length; i++) {
         const key = localStorage.key(i);
@@ -1794,36 +1812,68 @@ const exportAndShareHighscores = () => {
                 const raw = localStorage.getItem(key) || '[]';
                 const list = JSON.parse(raw);
                 if (Array.isArray(list) && list.length > 0) {
-                    // COMPACTAÇÃO MÁXIMA: Guardamos apenas [Nome, Score] em vez de objetos JSON com datas ISO gigantes!
-                    // Reduz o payload do URL em cerca de 75%, evitando links gigantescos no Whatsapp!
                     allScores[tableName] = list.map((item: any) => [item.name || 'ANON', item.score || 0]);
                 }
             } catch(e) {}
         }
     }
     
-    const jsonStr = JSON.stringify(allScores);
-    const base64 = btoa(String.fromCharCode.apply(null, Array.from(new TextEncoder().encode(jsonStr))));
+    let finalShareUrl = '';
+    try {
+        // 1. Tentar gerar um atalho encurtado nativo na VPS via ID aleatório curto
+        const res = await fetch('/api/shares', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(allScores)
+        });
+        if (res.ok) {
+            const data = await res.json();
+            if (data.success && data.id) {
+                finalShareUrl = `${window.location.origin}${window.location.pathname}?s=${data.id}`;
+            }
+        }
+    } catch (err) {}
+
+    if (!finalShareUrl) {
+        // Fallback robusto: embutir todo o payload Base64 caso o servidor esteja local/offline
+        const jsonStr = JSON.stringify(allScores);
+        const base64 = btoa(String.fromCharCode.apply(null, Array.from(new TextEncoder().encode(jsonStr))));
+        finalShareUrl = `${window.location.origin}${window.location.pathname}?import=${encodeURIComponent(base64)}`;
+    }
     
-    const shareUrl = `${window.location.origin}${window.location.pathname}?import=${encodeURIComponent(base64)}`;
-    const text = `Desafio-te no Oficina Pinball! 🏆\nFunde os nossos recordes clicando aqui:\n${shareUrl}`;
+    const text = `Desafio-te no Oficina Pinball! 🏆\nClica para bateres os meus recordes:\n${finalShareUrl}`;
     const whatsappUrl = `https://api.whatsapp.com/send?text=${encodeURIComponent(text)}`;
     
     window.open(whatsappUrl, '_blank');
 };
 
-const checkAndImportHighscores = () => {
+const checkAndImportHighscores = async () => {
     const urlParams = new URLSearchParams(window.location.search);
     const importData = urlParams.get('import');
-    if (!importData) return;
+    const shortId = urlParams.get('s');
+    
+    if (!importData && !shortId) return;
     
     try {
-        // Limpar o URL imediatamente para evitar ciclos de importação redundantes
+        // Limpar o URL imediatamente da barra do browser para evitar importações cíclicas indesejadas
         const cleanUrl = window.location.origin + window.location.pathname;
         window.history.replaceState({}, document.title, cleanUrl);
         
-        const jsonStr = new TextDecoder().decode(Uint8Array.from(atob(decodeURIComponent(importData)), c => c.charCodeAt(0)));
-        const sharedScores = JSON.parse(jsonStr);
+        let sharedScores = null;
+        
+        if (shortId) {
+            // Procurar e carregar os recordes encurtados gravados no servidor VPS
+            const res = await fetch(`/api/shares/${encodeURIComponent(shortId)}`);
+            if (res.ok) {
+                sharedScores = await res.json();
+            }
+        } else if (importData) {
+            // Descompactar os dados vindos diretamente do URL longo herdado/legado
+            const jsonStr = new TextDecoder().decode(Uint8Array.from(atob(decodeURIComponent(importData)), c => c.charCodeAt(0)));
+            sharedScores = JSON.parse(jsonStr);
+        }
+        
+        if (!sharedScores) return;
         
         setTimeout(() => {
             if (confirm("🏆 RECORDES PARTILHADOS ENCONTRADOS!\n\nDesejas consolidar e importar os recordes partilhados pelo teu amigo?\n\nOs recordes das mesas comuns serão fundidos mantendo os TOP 10 melhores na tua memória local.")) {
@@ -1834,7 +1884,6 @@ const checkAndImportHighscores = () => {
                     const localKey = `highscores_${tableName}`;
                     const localScores = JSON.parse(localStorage.getItem(localKey) || '[]');
                     
-                    // Consolidar eliminando duplicados exatos (mesmo nome + mesma pontuação)
                     const mergedMap = new Map<string, any>();
                     
                     localScores.forEach((s: any) => {
@@ -1848,11 +1897,9 @@ const checkAndImportHighscores = () => {
                         let dt = new Date().toISOString();
                         
                         if (Array.isArray(s)) {
-                            // NOVO FORMATO: [Nome, Pontuação]
                             name = String(s[0] || 'ANON');
                             val = Number(s[1] || 0);
                         } else if (s && typeof s === 'object') {
-                            // COMPATIBILIDADE RETROATIVA: Antigos objetos {name, score, date}
                             name = String(s.name || 'ANON');
                             val = Number(s.score || 0);
                             dt = s.date || dt;
@@ -1867,7 +1914,6 @@ const checkAndImportHighscores = () => {
                         }
                     });
                     
-                    // Reordenar descendentemente e trancar no TOP 10
                     const sortedMerged = Array.from(mergedMap.values())
                         .sort((a, b) => (b.score || 0) - (a.score || 0))
                         .slice(0, 10);
@@ -2253,18 +2299,21 @@ const runGameSimulation = (isWarping = false) => {
                     marbleBody.setStatic();
                     
                     setTimeout(() => {
+                        dHole.ejecting = true; // Latch de Proteção Ativo: Impede re-capturas instantâneas durante o arranque!
                         if (marbleBody) {
                             marbleBody.setDynamic();
                             const dir = Vec2(-Math.sin(hAngle), Math.cos(hAngle));
-                            marbleBody.applyLinearImpulse(dir.mul(55), marbleBody.getWorldCenter());
+                            // Impulso ligeiramente aumentado (55 -> 68) para dar um arranque enérgico e limpo para fora da câmara!
+                            marbleBody.applyLinearImpulse(dir.mul(68), marbleBody.getWorldCenter());
                         }
                         dHole.trapped = false;
                         
-                        // Atrasar o fecho físico da porta por 250ms para que a bola tenha tempo de sair da caixa!
+                        // Atrasar o fecho físico da porta para que a bola tenha tempo de sair da caixa sem pressas
                         setTimeout(() => {
                             dHole.gateOpen = false;
                             dHole.active = false;
                             dHole.hadBall = false;
+                            dHole.ejecting = false; // Fim da proteção: o buraco está trancado fisicamente e operacional
                             if (dHole.original) {
                                 dHole.original.gateOpen = false;
                                 dHole.original.active = false;
@@ -2919,8 +2968,8 @@ const runGameSimulation = (isWarping = false) => {
                 const bPos = marbleBody.getPosition();
                 
                 if (data.gateOpen) {
-                    if (data.trapped) {
-                        // A bola está presa no buraco, não faz nada
+                    if (data.trapped || data.ejecting) {
+                        // A bola está presa no buraco OU em fase de ejeção segura: não tenta sugar nem capturar repetidamente!
                     } else {
                         const dist = Vec2.distance(pos, bPos);
                         
@@ -3060,12 +3109,13 @@ const runGameSimulation = (isWarping = false) => {
                                     }, 1500);
                                 } else {
                                     setTimeout(() => {
+                                        data.ejecting = true; // Latch de Proteção: Bloqueia recaptura instantânea no arranque!
                                         if (marbleBody) {
                                             marbleBody.setDynamic();
                                             // Expulsa na direção da abertura (para baixo do U local, ou seja, local Vec2(0, 1))
                                             const ang = b.getAngle();
                                             const dir = Vec2(-Math.sin(ang), Math.cos(ang)); // Vetor local (0, 1) transformado para mundo
-                                            marbleBody.applyLinearImpulse(dir.mul(55), marbleBody.getWorldCenter());
+                                            marbleBody.applyLinearImpulse(dir.mul(68), marbleBody.getWorldCenter()); // Impulso de ejeção limpa
                                         }
                                         data.trapped = false;
                                         
@@ -3074,6 +3124,7 @@ const runGameSimulation = (isWarping = false) => {
                                             data.gateOpen = false;
                                             data.active = false;
                                             data.hadBall = false;
+                                            data.ejecting = false; // Ejeção terminada com sucesso, regressa ao modo sensor padrão
                                             if (!data.gateFixture) {
                                                 data.gateFixture = b.createFixture(planck.Box(pxToM(26), pxToM(2), Vec2(0, pxToM(26)), 0), { restitution: 0.2 });
                                             }
@@ -3147,46 +3198,7 @@ const runGameSimulation = (isWarping = false) => {
             ctx.restore();
         }
 
-        // NOVO: Desenhar HUD do Prego Salvador Ativo (Contador Decrescente)
-        if (isPlaying && pregoActiveTimer > now) {
-            const timeLeftMs = pregoActiveTimer - now;
-            const secondsLeft = Math.ceil(timeLeftMs / 1000);
-            
-            ctx.save();
-            // Posicionado discretamente mas visível no canto superior esquerdo da mesa
-            ctx.translate(15, 20);
-            
-            const isWarning = secondsLeft <= 5; // Piscar rápido de aviso nos últimos 5s
-            const pulseFast = isWarning ? (0.6 + 0.4 * Math.sin(now * 0.025)) : 1.0;
-            
-            // Laranja elétrico neon no tema sci-fi e castanho vintage profundo no tema retro
-            const hudColor = activeTheme === 'retro' ? '#d84315' : '#ff9800';
-            
-            // Fundo estilo vidro/acrílico semi-translúcido
-            ctx.fillStyle = activeTheme === 'retro' ? 'rgba(186, 146, 97, 0.9)' : 'rgba(5, 2, 10, 0.85)';
-            ctx.strokeStyle = hudColor;
-            ctx.lineWidth = 2;
-            
-            if (activeTheme !== 'retro') {
-                ctx.shadowBlur = isWarning ? 15 : 10;
-                ctx.shadowColor = hudColor;
-            }
-            
-            ctx.beginPath();
-            ctx.roundRect(0, 0, 90, 30, 8);
-            ctx.fill(); ctx.stroke();
-            
-            // Desenhar Texto do Escudo e Contador Digital
-            ctx.shadowBlur = 0;
-            ctx.globalAlpha = pulseFast;
-            ctx.fillStyle = activeTheme === 'retro' ? '#3e2723' : '#ffffff';
-            ctx.font = "900 14px 'Orbitron', Courier, sans-serif";
-            ctx.textAlign = 'center';
-            ctx.textBaseline = 'middle';
-            
-            ctx.fillText(`🛡️ ${secondsLeft}S`, 45, 15);
-            ctx.restore();
-        }
+
 
         // Condição de Morte removida (Agora feita por Sensor)
         

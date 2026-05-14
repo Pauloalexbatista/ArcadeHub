@@ -74,6 +74,40 @@ app.delete('/api/tables/:name', (req, res) => {
     }
 });
 
+// Diretório de Partilhas de Recordes (Shortener)
+const sharesDir = path.resolve(__dirname, 'Shared_Scores');
+if (!fs.existsSync(sharesDir)) {
+    fs.mkdirSync(sharesDir);
+}
+
+// API: Criar nova partilha curta de recordes
+app.post('/api/shares', (req, res) => {
+    try {
+        const data = req.body;
+        // Gerar ID aleatório curto de 8 letras/números em maiúsculas (ex: A2B9KF4L)
+        const id = Math.random().toString(36).substring(2, 10).toUpperCase();
+        fs.writeFileSync(path.join(sharesDir, `${id}.json`), JSON.stringify(data));
+        res.json({ success: true, id });
+    } catch (e) {
+        res.status(500).json({ error: 'Falha ao gerar atalho na VPS' });
+    }
+});
+
+// API: Ler partilha de recordes curta
+app.get('/api/shares/:id', (req, res) => {
+    try {
+        const id = req.params.id.toUpperCase().replace(/[^A-Z0-9]/g, '');
+        const filePath = path.join(sharesDir, `${id}.json`);
+        if (fs.existsSync(filePath)) {
+            res.sendFile(filePath);
+        } else {
+            res.status(404).json({ error: 'Atalho de partilha inexistente' });
+        }
+    } catch (e) {
+        res.status(500).json({ error: 'Erro ao descompactar atalho' });
+    }
+});
+
 // Suporte para rotas de entrada SPA (redirecionar qualquer outra rota para o index.html)
 app.get('*', (req, res) => {
     res.sendFile(path.join(__dirname, 'dist', 'index.html'));
