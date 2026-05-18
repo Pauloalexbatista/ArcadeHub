@@ -382,15 +382,26 @@ const NEON_COLORS = ['#ff00ff', '#00ffff', '#00ff00', '#ffeb3b'];
 type Tool = 'pin' | 'prego' | 'wall' | 'wall-b' | 'gate' | 'bumper-s' | 'bumper-l' | 'bumper-t' | 'bumper-t-l' | 'flipper-l' | 'flipper-r' | 'flipper-s-l' | 'flipper-s-r' | 'hole' | 'hole-g' | 'hole-r' | 'hole-b' | 'hole-y' | 'target' | 'target-p' | 'spinner' | 'roleta' | 'light' | 'light-g' | 'light-r' | 'light-b' | 'light-y' | 'light-g3-line' | 'light-g3-tri' | 'light-g4-line' | 'light-g4-square' | 'trash' | 'plunger' | 'spawn';
 
 let undoStack: any[][] = [];
+let redoStack: any[][] = [];
 
 const saveState = () => {
     undoStack.push(JSON.parse(JSON.stringify(components)));
     if (undoStack.length > 20) undoStack.shift();
+    redoStack = []; // Resetar redo ao fazer uma nova ação
 };
 
 const undo = () => {
     if (undoStack.length > 0) {
+        redoStack.push(JSON.parse(JSON.stringify(components)));
         components = undoStack.pop()!;
+        drawEditor();
+    }
+};
+
+const redo = () => {
+    if (redoStack.length > 0) {
+        undoStack.push(JSON.parse(JSON.stringify(components)));
+        components = redoStack.pop()!;
         drawEditor();
     }
 };
@@ -437,6 +448,7 @@ const getNextExtraBallThreshold = (awardedCount: number) => {
 
 // Estado do Jogo Planck
 let world: any = null;
+let groundBody: any = null;
 let marbleBody: any = null;
 let plungerBody: any = null;
 let plungerJoint: any = null;
@@ -507,16 +519,24 @@ canvas.width = WIDTH;
 canvas.height = HEIGHT;
 
 const updateToolSelection = () => {
-    document.querySelectorAll('.tool').forEach(btn => {
+    document.querySelectorAll('.tool:not(.action-tool)').forEach(btn => {
         btn.classList.toggle('active', btn.getAttribute('data-tool') === currentTool);
     });
 };
 
-document.querySelectorAll('.tool').forEach(btn => {
+document.querySelectorAll('.tool:not(.action-tool)').forEach(btn => {
     btn.addEventListener('click', () => {
         currentTool = btn.getAttribute('data-tool') as Tool;
         wallStart = null; updateToolSelection();
     });
+});
+
+document.getElementById('btn-undo')?.addEventListener('click', () => {
+    if (!isPlaying) undo();
+});
+
+document.getElementById('btn-redo')?.addEventListener('click', () => {
+    if (!isPlaying) redo();
 });
 
 // Listeners das Abas Mobile
@@ -628,7 +648,7 @@ const isPointInComponent = (px: number, py: number, c: any) => {
     const dx = px - c.x;
     const dy = py - c.y;
 
-    if (c.type === 'wall' || c.type === 'wall-b') {
+    if (c.type === 'wall' || c.type === 'wall-b' || c.type === 'gate') {
         if (c.p0 && (c.p4 || c.p2)) {
             // Verificar proximidade ao longo da curva Bezier de forma contínua (25 pontos para garantir que não há falhas em curvas longas!)
             for (let i = 0; i <= 25; i++) {
@@ -641,7 +661,8 @@ const isPointInComponent = (px: number, py: number, c: any) => {
         const angle = c.angle || 0;
         const localX = dx * Math.cos(-angle) - dy * Math.sin(-angle);
         const localY = dx * Math.sin(-angle) + dy * Math.cos(-angle);
-        return Math.abs(localX) <= (c.w / 2) + 5 && Math.abs(localY) <= 15;
+        const w = c.w !== undefined ? c.w : 80;
+        return Math.abs(localX) <= (w / 2) + 5 && Math.abs(localY) <= 15;
     }
     
     if (c.type.startsWith('bumper')) {
@@ -689,22 +710,22 @@ canvas.addEventListener('mousedown', (e) => {
     if (isPlaying) return;
     const pos = getGridPos(e);
     
-    // Verificar primeiro se o utilizador clicou perto de um ponto de controlo de uma parede curva (apenas se não estiver com a ferramenta apagar ativa!)
+    // Verificar primeiro se o utilizador clicou perto de um ponto de controlo de uma parede curva (apenas se não estiver com a ferramenta apagar activa!)
     if (currentTool !== 'trash') {
         for (let c of components) {
             if (c.p0 && c.p1 && c.p2) {
                 const d0 = Math.sqrt((pos.x - c.p0.x)**2 + (pos.y - c.p0.y)**2);
                 const d1 = Math.sqrt((pos.x - c.p1.x)**2 + (pos.y - c.p1.y)**2);
                 const d2 = Math.sqrt((pos.x - c.p2.x)**2 + (pos.y - c.p2.y)**2);
-                if (d0 <= 15) { draggedWall = c; draggedPointKey = 'p0'; isMoving = true; return; }
-                if (d1 <= 15) { draggedWall = c; draggedPointKey = 'p1'; isMoving = true; return; }
-                if (d2 <= 15) { draggedWall = c; draggedPointKey = 'p2'; isMoving = true; return; }
+                if (d0 <= 15) { saveState(); draggedWall = c; draggedPointKey = 'p0'; isMoving = true; return; }
+                if (d1 <= 15) { saveState(); draggedWall = c; draggedPointKey = 'p1'; isMoving = true; return; }
+                if (d2 <= 15) { saveState(); draggedWall = c; draggedPointKey = 'p2'; isMoving = true; return; }
 
                 if (c.p3 && c.p4) {
                     const d3 = Math.sqrt((pos.x - c.p3.x)**2 + (pos.y - c.p3.y)**2);
                     const d4 = Math.sqrt((pos.x - c.p4.x)**2 + (pos.y - c.p4.y)**2);
-                    if (d3 <= 15) { draggedWall = c; draggedPointKey = 'p3'; isMoving = true; return; }
-                    if (d4 <= 15) { draggedWall = c; draggedPointKey = 'p4'; isMoving = true; return; }
+                    if (d3 <= 15) { saveState(); draggedWall = c; draggedPointKey = 'p3'; isMoving = true; return; }
+                    if (d4 <= 15) { saveState(); draggedWall = c; draggedPointKey = 'p4'; isMoving = true; return; }
                 }
             }
         }
@@ -712,6 +733,7 @@ canvas.addEventListener('mousedown', (e) => {
     
     const index = components.findIndex(c => isPointInComponent(pos.x, pos.y, c));
     if (index !== -1 && currentTool !== 'wall' && currentTool !== 'wall-b') {
+        saveState();
         draggedComponent = components[index]; isMoving = false;
     }
 });
@@ -768,10 +790,35 @@ canvas.addEventListener('wheel', (e) => {
     if (isPlaying) return;
     const pos = getGridPos(e);
     const index = components.findIndex(c => isPointInComponent(pos.x, pos.y, c));
-    if (index !== -1 && components[index].type !== 'wall' && components[index].type !== 'wall-b') {
+    if (index !== -1) {
         e.preventDefault();
+        saveState();
         const direction = e.deltaY > 0 ? 1 : -1;
-        components[index].angle = (components[index].angle || 0) + (10 * Math.PI / 180) * direction;
+        const comp = components[index];
+        const deltaAngle = (10 * Math.PI / 180) * direction;
+        
+        if (comp.p0 && comp.p1 && comp.p2) {
+            // É uma parede ou portão curvo! Rodar todos os pontos de controlo à volta do centro virtual (comp.x, comp.y)
+            const cx = comp.x;
+            const cy = comp.y;
+            const cos = Math.cos(deltaAngle);
+            const sin = Math.sin(deltaAngle);
+            
+            const rotatePoint = (pt: { x: number, y: number }) => {
+                const dx = pt.x - cx;
+                const dy = pt.y - cy;
+                pt.x = Math.round(cx + dx * cos - dy * sin);
+                pt.y = Math.round(cy + dx * sin + dy * cos);
+            };
+            
+            rotatePoint(comp.p0);
+            rotatePoint(comp.p1);
+            rotatePoint(comp.p2);
+            if (comp.p3) rotatePoint(comp.p3);
+            if (comp.p4) rotatePoint(comp.p4);
+        }
+        
+        comp.angle = ((comp.angle || 0) + deltaAngle) % (Math.PI * 2);
         drawEditor();
     }
 });
@@ -853,7 +900,7 @@ canvas.addEventListener('click', async (e) => {
     if (currentTool === 'trash') {
         const index = components.findIndex(c => isPointInComponent(pos.x, pos.y, c));
         if (index !== -1) components.splice(index, 1);
-    } else if (currentTool === 'wall' || currentTool === 'wall-b') {
+    } else if (currentTool === 'wall' || currentTool === 'wall-b' || currentTool === 'gate') {
         const snapped = snapToNearest(pos.x, pos.y);
         if (!wallStart) { wallStart = snapped; } else {
             const clampedEnd = { x: snapped.x, y: Math.min(snapped.y, PLAY_ZONE_BOTTOM - 10) };
@@ -1028,32 +1075,95 @@ const drawEditor = () => {
     ctx.restore();
 
     components.forEach(c => {
-        if (c.type === 'gate') {
-            ctx.save();
-            ctx.translate(c.x, c.y);
-            ctx.rotate(c.angle || 0);
-            // Lado Verde (Passagem)
-            ctx.strokeStyle = '#00ff00';
-            ctx.lineWidth = 4;
-            ctx.beginPath();
-            ctx.moveTo(-15, 0); ctx.lineTo(0, 0);
-            ctx.stroke();
-            // Lado Vermelho (Bloqueio)
-            ctx.strokeStyle = '#ff0055';
-            ctx.beginPath();
-            ctx.moveTo(0, 0); ctx.lineTo(15, 0);
-            ctx.stroke();
-            // Seta indicativa de sentido
-            ctx.strokeStyle = '#fff';
-            ctx.lineWidth = 2;
-            ctx.beginPath();
-            ctx.moveTo(-5, -5); ctx.lineTo(5, 0); ctx.lineTo(-5, 5);
-            ctx.stroke();
-            ctx.restore();
-        }
         if (c.p0 && (c.p4 || c.p2)) {
             ctx.save();
-            if (activeTheme === 'retro') {
+            if (c.type === 'gate') {
+                const segments = 20;
+                const isRetro = activeTheme === 'retro';
+                
+                // Configurações do tema clássico vs neon
+                const colorGreen = isRetro ? '#2e7d32' : '#00ff00';
+                const colorRed = isRetro ? '#c62828' : '#ff0055';
+                const shadow = isRetro ? 0 : 8;
+
+                // Lado Verde (allowed entry side, Y < 0) -> offset by -nx * 4, -ny * 4
+                ctx.strokeStyle = colorGreen;
+                ctx.lineWidth = isRetro ? 5 : 4;
+                ctx.lineCap = 'round';
+                ctx.shadowBlur = shadow;
+                ctx.shadowColor = colorGreen;
+                ctx.beginPath();
+                const startPtG = getBezierPoint(c, 0);
+                const tangentStart = { x: getBezierPoint(c, 0.05).x - startPtG.x, y: getBezierPoint(c, 0.05).y - startPtG.y };
+                const lenStart = Math.sqrt(tangentStart.x * tangentStart.x + tangentStart.y * tangentStart.y);
+                const nxStart = -tangentStart.y / (lenStart || 1);
+                const nyStart = tangentStart.x / (lenStart || 1);
+                ctx.moveTo(startPtG.x - nxStart * 4, startPtG.y - nyStart * 4);
+                
+                for (let i = 1; i <= segments; i++) {
+                    const pt = getBezierPoint(c, i / segments);
+                    const prevPt = getBezierPoint(c, (i - 1) / segments);
+                    const dx = pt.x - prevPt.x;
+                    const dy = pt.y - prevPt.y;
+                    const len = Math.sqrt(dx*dx + dy*dy);
+                    const nx = -dy / (len || 1);
+                    const ny = dx / (len || 1);
+                    ctx.lineTo(pt.x - nx * 4, pt.y - ny * 4);
+                }
+                ctx.stroke();
+
+                // Lado Vermelho (blocked exit side, Y > 0) -> offset by +nx * 4, +ny * 4
+                ctx.strokeStyle = colorRed;
+                ctx.shadowColor = colorRed;
+                ctx.beginPath();
+                ctx.moveTo(startPtG.x + nxStart * 4, startPtG.y + nyStart * 4);
+                
+                for (let i = 1; i <= segments; i++) {
+                    const pt = getBezierPoint(c, i / segments);
+                    const prevPt = getBezierPoint(c, (i - 1) / segments);
+                    const dx = pt.x - prevPt.x;
+                    const dy = pt.y - prevPt.y;
+                    const len = Math.sqrt(dx*dx + dy*dy);
+                    const nx = -dy / (len || 1);
+                    const ny = dx / (len || 1);
+                    ctx.lineTo(pt.x + nx * 4, pt.y + ny * 4);
+                }
+                ctx.stroke();
+
+                // Desenhar pinos de dobradiça em latão clássico se for tema retro
+                if (isRetro) {
+                    const endPtG = getBezierPoint(c, 1);
+                    
+                    // Suporte P0
+                    ctx.fillStyle = '#d4af37';
+                    ctx.strokeStyle = '#3e2723';
+                    ctx.lineWidth = 1.5;
+                    
+                    ctx.beginPath();
+                    ctx.arc(startPtG.x, startPtG.y, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+                    
+                    // Brilho metálico no pino
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(startPtG.x - 1.5, startPtG.y - 1.5, 1.2, 0, Math.PI * 2);
+                    ctx.fill();
+
+                    // Suporte P4/P2
+                    ctx.fillStyle = '#d4af37';
+                    ctx.beginPath();
+                    ctx.arc(endPtG.x, endPtG.y, 5, 0, Math.PI * 2);
+                    ctx.fill();
+                    ctx.stroke();
+
+                    // Brilho metálico
+                    ctx.fillStyle = '#fff';
+                    ctx.beginPath();
+                    ctx.arc(endPtG.x - 1.5, endPtG.y - 1.5, 1.2, 0, Math.PI * 2);
+                    ctx.fill();
+                }
+            } else if (activeTheme === 'retro') {
                 ctx.strokeStyle = c.type === 'wall-b' ? '#d32f2f' : '#3e2723'; // Elásticos vermelhos (wall-b) e paredes de madeira escura (wall)!
                 ctx.lineWidth = 6;
                 ctx.lineCap = 'round';
@@ -1161,18 +1271,16 @@ const drawEditor = () => {
         }
     });
     
-    if (wallStart) {
+    if (wallStart && (currentTool === 'wall' || currentTool === 'wall-b' || currentTool === 'gate')) {
         ctx.save();
         ctx.fillStyle = '#00e5ff'; ctx.beginPath(); ctx.arc(wallStart.x, wallStart.y, 4, 0, Math.PI*2); ctx.fill();
-        if (ghostPos) {
-            ctx.strokeStyle = currentTool === 'wall-b' ? 'rgba(0, 255, 255, 0.5)' : 'rgba(255, 0, 255, 0.5)';
-            ctx.lineWidth = 4;
-            ctx.setLineDash([5, 5]);
-            ctx.beginPath();
-            ctx.moveTo(wallStart.x, wallStart.y);
-            ctx.lineTo(ghostPos.x, ghostPos.y);
-            ctx.stroke();
-        }
+        ctx.strokeStyle = currentTool === 'wall-b' ? 'rgba(0, 255, 255, 0.5)' : (currentTool === 'gate' ? 'rgba(0, 255, 0, 0.5)' : 'rgba(255, 0, 255, 0.5)');
+        ctx.lineWidth = 4;
+        ctx.setLineDash([5, 5]);
+        ctx.beginPath();
+        ctx.moveTo(wallStart.x, wallStart.y);
+        ctx.lineTo(ghostPos.x, ghostPos.y);
+        ctx.stroke();
         ctx.restore();
     }
     
@@ -1373,17 +1481,46 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             ctx.fillStyle = '#cfd8dc'; ctx.strokeStyle = '#37474f'; ctx.lineWidth = 1.5;
             ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
         }
-    } else if (c.type === 'wall' || c.type === 'wall-b') {
-        if (activeTheme === 'retro') {
-            // Calha de madeira de carvalho escuro com friso metálico dourado
-            ctx.fillStyle = '#3e2723'; 
-            ctx.beginPath(); ctx.roundRect(-(c.w/2), -3, c.w, 6, 2); ctx.fill();
-            ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 1.5; ctx.stroke();
+    } else if (c.type === 'wall' || c.type === 'wall-b' || c.type === 'gate') {
+        const w = c.w !== undefined ? c.w : 80;
+        if (c.type === 'gate') {
+            const isRetro = activeTheme === 'retro';
+            const colorGreen = isRetro ? '#2e7d32' : '#00ff00';
+            const colorRed = isRetro ? '#c62828' : '#ff0055';
+            const shadow = isRetro ? 0 : 8;
+
+            ctx.save();
+            ctx.lineCap = 'round';
+            ctx.shadowBlur = shadow;
+            
+            // Lado Verde (Y = -4)
+            ctx.strokeStyle = colorGreen;
+            ctx.shadowColor = colorGreen;
+            ctx.lineWidth = isRetro ? 5 : 4;
+            ctx.beginPath();
+            ctx.moveTo(-w/2, -4);
+            ctx.lineTo(w/2, -4);
+            ctx.stroke();
+
+            // Lado Vermelho (Y = 4)
+            ctx.strokeStyle = colorRed;
+            ctx.shadowColor = colorRed;
+            ctx.beginPath();
+            ctx.moveTo(-w/2, 4);
+            ctx.lineTo(w/2, 4);
+            ctx.stroke();
+            ctx.restore();
         } else {
-            ctx.fillStyle = c.type === 'wall-b' ? '#00ffff' : '#110520';
-            ctx.shadowBlur = c.type === 'wall-b' ? 15 : 10; ctx.shadowColor = c.type === 'wall-b' ? '#00ffff' : '#ff00ff';
-            ctx.beginPath(); ctx.roundRect(-(c.w/2), -3, c.w, 6, 2); ctx.fill();
-            ctx.strokeStyle = c.type === 'wall-b' ? '#fff' : '#ff00ff'; ctx.lineWidth = 2; ctx.stroke();
+            if (activeTheme === 'retro') {
+                ctx.fillStyle = '#3e2723'; 
+                ctx.beginPath(); ctx.roundRect(-(w/2), -3, w, 6, 2); ctx.fill();
+                ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 1.5; ctx.stroke();
+            } else {
+                ctx.fillStyle = c.type === 'wall-b' ? '#00ffff' : '#110520';
+                ctx.shadowBlur = c.type === 'wall-b' ? 15 : 10; ctx.shadowColor = c.type === 'wall-b' ? '#00ffff' : '#ff00ff';
+                ctx.beginPath(); ctx.roundRect(-(w/2), -3, w, 6, 2); ctx.fill();
+                ctx.strokeStyle = c.type === 'wall-b' ? '#fff' : '#ff00ff'; ctx.lineWidth = 2; ctx.stroke();
+            }
         }
     } else if (c.type === 'target' || c.type === 'target-p') {
         const isPerm = c.type === 'target-p';
@@ -2064,13 +2201,13 @@ const runGameSimulation = (isWarping = false) => {
 
     // Paredes Invisíveis do Sistema
     // Paredes Invisíveis do Sistema (Usando Box para evitar saltinhos nas quinas)
-    const ground = world.createBody();
+    groundBody = world.createBody();
     // Esquerda
-    ground.createFixture(planck.Box(pxToM(10), pxToM(HEIGHT), Vec2(pxToM(-10), pxToM(HEIGHT/2))), { friction: 0.02, restitution: 0.5 });
+    groundBody.createFixture(planck.Box(pxToM(10), pxToM(HEIGHT), Vec2(pxToM(-10), pxToM(HEIGHT/2))), { friction: 0.02, restitution: 0.5 });
     // Direita
-    ground.createFixture(planck.Box(pxToM(10), pxToM(HEIGHT), Vec2(pxToM(WIDTH + 10), pxToM(HEIGHT/2))), { friction: 0.02, restitution: 0.5 });
+    groundBody.createFixture(planck.Box(pxToM(10), pxToM(HEIGHT), Vec2(pxToM(WIDTH + 10), pxToM(HEIGHT/2))), { friction: 0.02, restitution: 0.5 });
     // Topo
-    ground.createFixture(planck.Box(pxToM(WIDTH), pxToM(10), Vec2(pxToM(WIDTH/2), pxToM(-10))), { friction: 0.02, restitution: 0.5 });
+    groundBody.createFixture(planck.Box(pxToM(WIDTH), pxToM(10), Vec2(pxToM(WIDTH/2), pxToM(-10))), { friction: 0.02, restitution: 0.5 });
     
     // Sensor de Dreno (Linha de Morte)
     const drain = world.createBody();
@@ -2101,7 +2238,7 @@ const runGameSimulation = (isWarping = false) => {
             b.setUserData({ type: 'bumper', original: c, hitTimer: 0, speed: isLarge ? 35 : 25 });
         } else if (c.type.startsWith('flipper')) {
             createPlanckFlipper(c);
-        } else if (c.type === 'wall' || c.type === 'wall-b') {
+        } else if (c.type === 'wall' || c.type === 'wall-b' || c.type === 'gate') {
             if (c.p0 && (c.p4 || c.p2)) {
                 const segments = 12; // Aumentado para 12 segmentos para curvas ainda mais suaves fisicamente!
                 for (let i = 0; i < segments; i++) {
@@ -2120,16 +2257,27 @@ const runGameSimulation = (isWarping = false) => {
                         friction: 0.02,
                         filterGroupIndex: -1
                     });
-                    segmentBody.setUserData({ type: c.type === 'wall-b' ? 'bumper' : 'wall', original: c, hitTimer: 0, speed: 30 });
+                    segmentBody.setUserData({ 
+                        type: c.type === 'gate' ? 'gate' : (c.type === 'wall-b' ? 'bumper' : 'wall'), 
+                        original: c, 
+                        hitTimer: 0, 
+                        speed: 30 
+                    });
                 }
             } else {
+                const w = c.w !== undefined ? c.w : 80;
                 const b = world.createBody({ position: pos, angle: angle });
-                b.createFixture(planck.Box(pxToM(c.w / 2), pxToM(3)), { 
+                b.createFixture(planck.Box(pxToM(w / 2), pxToM(3)), { 
                     restitution: c.type === 'wall-b' ? 0.6 : 0.5, 
                     friction: 0.02,
                     filterGroupIndex: -1
                 });
-                b.setUserData({ type: c.type === 'wall-b' ? 'bumper' : 'wall', original: c, hitTimer: 0, speed: 30 });
+                b.setUserData({ 
+                    type: c.type === 'gate' ? 'gate' : (c.type === 'wall-b' ? 'bumper' : 'wall'), 
+                    original: c, 
+                    hitTimer: 0, 
+                    speed: 30 
+                });
             }
         } else if (c.type === 'target' || c.type === 'target-p') {
             const b = world.createBody({ position: pos, angle: angle });
@@ -2140,7 +2288,7 @@ const runGameSimulation = (isWarping = false) => {
             const b = world.createDynamicBody({ position: pos, angularDamping: 1.5 });
             b.setAngle(angle);
             b.createFixture(planck.Box(pxToM(30), pxToM(8)), { density: 1, friction: 0.1 });
-            world.createJoint(planck.RevoluteJoint({}, ground, b, pos));
+            world.createJoint(planck.RevoluteJoint({}, groundBody, b, pos));
             b.setUserData({ 
                 type: 'spinner', 
                 original: c, 
@@ -2453,6 +2601,48 @@ const runGameSimulation = (isWarping = false) => {
             }, 1000);
         }
     }
+
+    // Contact Listener para Portão Sentido Único (One-Way Gate)
+    world.on('pre-solve', (contact: any) => {
+        const fixtureA = contact.getFixtureA();
+        const fixtureB = contact.getFixtureB();
+        const bodyA = fixtureA.getBody();
+        const bodyB = fixtureB.getBody();
+        const dataA = bodyA.getUserData();
+        const dataB = bodyB.getUserData();
+        
+        let gateBody = null;
+        let ballBody = null;
+        let gateData = null;
+        
+        if (dataA?.type === 'gate') {
+            gateBody = bodyA;
+            gateData = dataA;
+            ballBody = bodyB;
+        } else if (dataB?.type === 'gate') {
+            gateBody = bodyB;
+            gateData = dataB;
+            ballBody = bodyA;
+        }
+        
+        if (gateBody && ballBody) {
+            const localBallPos = gateBody.getLocalPoint(ballBody.getPosition());
+            const ballRadius = pxToM(13); // Raio da bola em metros
+            
+            // Só ativamos colisão física se a bola estiver completamente do lado vermelho (Y local > 0)
+            // Se a bola estiver do lado verde ou a atravessar (overlap), a colisão é desativada!
+            if (localBallPos.y - ballRadius < -pxToM(2)) {
+                contact.setEnabled(false);
+                
+                // Tocar som de passagem (apenas uma vez por travessia completa)
+                const now = Date.now();
+                if (!gateData.lastPassSound || now - gateData.lastPassSound > 1000) {
+                    gateData.lastPassSound = now;
+                    sounds.playTarget();
+                }
+            }
+        }
+    });
 
     // Contact Listener para Mecânicas
     world.on('begin-contact', (contact: any) => {
@@ -2884,7 +3074,93 @@ const runGameSimulation = (isWarping = false) => {
         components.forEach(c => {
             if (c.p0 && (c.p4 || c.p2)) {
                 ctx.save();
-                if (activeTheme === 'retro') {
+                if (c.type === 'gate') {
+                    const segments = 20;
+                    const isRetro = activeTheme === 'retro';
+                    
+                    // Configurações do tema clássico vs neon
+                    const colorGreen = isRetro ? '#2e7d32' : '#00ff00';
+                    const colorRed = isRetro ? '#c62828' : '#ff0055';
+                    const shadow = isRetro ? 0 : 8;
+
+                    // Lado Verde (allowed entry side, Y < 0) -> offset by -nx * 4, -ny * 4
+                    ctx.strokeStyle = colorGreen;
+                    ctx.lineWidth = isRetro ? 5 : 4;
+                    ctx.lineCap = 'round';
+                    ctx.shadowBlur = shadow;
+                    ctx.shadowColor = colorGreen;
+                    ctx.beginPath();
+                    const startPtG = getBezierPoint(c, 0);
+                    const tangentStart = { x: getBezierPoint(c, 0.05).x - startPtG.x, y: getBezierPoint(c, 0.05).y - startPtG.y };
+                    const lenStart = Math.sqrt(tangentStart.x * tangentStart.x + tangentStart.y * tangentStart.y);
+                    const nxStart = -tangentStart.y / (lenStart || 1);
+                    const nyStart = tangentStart.x / (lenStart || 1);
+                    ctx.moveTo(startPtG.x - nxStart * 4, startPtG.y - nyStart * 4);
+                    
+                    for (let i = 1; i <= segments; i++) {
+                        const pt = getBezierPoint(c, i / segments);
+                        const prevPt = getBezierPoint(c, (i - 1) / segments);
+                        const dx = pt.x - prevPt.x;
+                        const dy = pt.y - prevPt.y;
+                        const len = Math.sqrt(dx*dx + dy*dy);
+                        const nx = -dy / (len || 1);
+                        const ny = dx / (len || 1);
+                        ctx.lineTo(pt.x - nx * 4, pt.y - ny * 4);
+                    }
+                    ctx.stroke();
+
+                    // Lado Vermelho (blocked exit side, Y > 0) -> offset by +nx * 4, +ny * 4
+                    ctx.strokeStyle = colorRed;
+                    ctx.shadowColor = colorRed;
+                    ctx.beginPath();
+                    ctx.moveTo(startPtG.x + nxStart * 4, startPtG.y + nyStart * 4);
+                    
+                    for (let i = 1; i <= segments; i++) {
+                        const pt = getBezierPoint(c, i / segments);
+                        const prevPt = getBezierPoint(c, (i - 1) / segments);
+                        const dx = pt.x - prevPt.x;
+                        const dy = pt.y - prevPt.y;
+                        const len = Math.sqrt(dx*dx + dy*dy);
+                        const nx = -dy / (len || 1);
+                        const ny = dx / (len || 1);
+                        ctx.lineTo(pt.x + nx * 4, pt.y + ny * 4);
+                    }
+                    ctx.stroke();
+
+                    // Desenhar pinos de dobradiça em latão clássico se for tema retro
+                    if (isRetro) {
+                        const endPtG = getBezierPoint(c, 1);
+                        
+                        // Suporte P0
+                        ctx.fillStyle = '#d4af37';
+                        ctx.strokeStyle = '#3e2723';
+                        ctx.lineWidth = 1.5;
+                        
+                        ctx.beginPath();
+                        ctx.arc(startPtG.x, startPtG.y, 5, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.stroke();
+                        
+                        // Brilho metálico no pino
+                        ctx.fillStyle = '#fff';
+                        ctx.beginPath();
+                        ctx.arc(startPtG.x - 1.5, startPtG.y - 1.5, 1.2, 0, Math.PI * 2);
+                        ctx.fill();
+
+                        // Suporte P4/P2
+                        ctx.fillStyle = '#d4af37';
+                        ctx.beginPath();
+                        ctx.arc(endPtG.x, endPtG.y, 5, 0, Math.PI * 2);
+                        ctx.fill();
+                        ctx.stroke();
+
+                        // Brilho metálico
+                        ctx.fillStyle = '#fff';
+                        ctx.beginPath();
+                        ctx.arc(endPtG.x - 1.5, endPtG.y - 1.5, 1.2, 0, Math.PI * 2);
+                        ctx.fill();
+                    }
+                } else if (activeTheme === 'retro') {
                     ctx.strokeStyle = c.type === 'wall-b' ? '#d32f2f' : '#3e2723'; // Elásticos vermelhos (wall-b) e paredes de madeira (wall)!
                     if (now < (c.hitTimer || 0)) {
                         ctx.strokeStyle = c.type === 'wall-b' ? '#ff5252' : '#5d4037'; // Feedback suave ao bater
@@ -3273,12 +3549,6 @@ const createPlanckFlipper = (c: any) => {
     flipperBody.createFixture(planck.Circle(r1), { density: 5, friction: 0.02, restitution: 0.05, filterGroupIndex: -1 });
     flipperBody.createFixture(planck.Circle(Vec2(isRight ? -l+r2 : l-r2, 0), r2), { density: 5, friction: 0.02, restitution: 0.05, filterGroupIndex: -1 });
 
-    // Encontrar o GROUND central para a junta (o primeiro corpo estático criado na runGameSimulation)
-    let ground;
-    for (let b = world.getBodyList(); b; b = b.getNext()) {
-        if (b.getType() === 'static' && b.getUserData() === null) { ground = b; break; }
-    }
-
     const joint = world.createJoint(planck.RevoluteJoint({
         enableMotor: true,
         maxMotorTorque: isSmall ? 20000 : 40000, // Torque reduzido proporcionalmente nos flippers pequenos para estabilidade perfeita!
@@ -3286,7 +3556,7 @@ const createPlanckFlipper = (c: any) => {
         lowerAngle: isRight ? -0.1 : -0.8,
         upperAngle: isRight ? 0.8 : 0.1,
         collideConnected: false
-    }, ground || world.createBody(), flipperBody, flipperPos));
+    }, groundBody || world.createBody(), flipperBody, flipperPos));
 
     flipperJoints.push({ joint, isRight });
     flipperBody.setUserData({ type: 'flipper', original: c });
@@ -3385,6 +3655,19 @@ window.addEventListener('devicemotion', (e) => {
 });
 
 window.addEventListener('keydown', (e) => {
+    if (!isPlaying) {
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z') {
+            e.preventDefault();
+            undo();
+            return;
+        }
+        if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'y') {
+            e.preventDefault();
+            redo();
+            return;
+        }
+    }
+
     if (e.key === 'Escape' || e.key === 'Esc') {
         stopSimulation();
         showHighscoreModal("BEM-VINDO");
