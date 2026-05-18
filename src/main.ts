@@ -379,7 +379,21 @@ class SoundEffects {
 const sounds = new SoundEffects();
 const NEON_COLORS = ['#ff00ff', '#00ffff', '#00ff00', '#ffeb3b'];
 
-type Tool = 'pin' | 'prego' | 'wall' | 'wall-b' | 'bumper-s' | 'bumper-l' | 'bumper-t' | 'bumper-t-l' | 'flipper-l' | 'flipper-r' | 'flipper-s-l' | 'flipper-s-r' | 'hole' | 'hole-g' | 'hole-r' | 'hole-b' | 'hole-y' | 'target' | 'target-p' | 'spinner' | 'roleta' | 'light' | 'light-g' | 'light-r' | 'light-b' | 'light-y' | 'light-g3-line' | 'light-g3-tri' | 'light-g4-line' | 'light-g4-square' | 'trash' | 'plunger' | 'spawn';
+type Tool = 'pin' | 'prego' | 'wall' | 'wall-b' | 'gate' | 'bumper-s' | 'bumper-l' | 'bumper-t' | 'bumper-t-l' | 'flipper-l' | 'flipper-r' | 'flipper-s-l' | 'flipper-s-r' | 'hole' | 'hole-g' | 'hole-r' | 'hole-b' | 'hole-y' | 'target' | 'target-p' | 'spinner' | 'roleta' | 'light' | 'light-g' | 'light-r' | 'light-b' | 'light-y' | 'light-g3-line' | 'light-g3-tri' | 'light-g4-line' | 'light-g4-square' | 'trash' | 'plunger' | 'spawn';
+
+let undoStack: any[][] = [];
+
+const saveState = () => {
+    undoStack.push(JSON.parse(JSON.stringify(components)));
+    if (undoStack.length > 20) undoStack.shift();
+};
+
+const undo = () => {
+    if (undoStack.length > 0) {
+        components = undoStack.pop()!;
+        drawEditor();
+    }
+};
 let activeTheme: 'neon' | 'retro' = 'neon';
 let currentTool: Tool = 'pin';
 let isPlaying = false;
@@ -637,9 +651,12 @@ const isPointInComponent = (px: number, py: number, c: any) => {
     }
 
     if (c.type.startsWith('flipper')) {
-        const isSmall = c.type.includes('-s-');
-        const length = isSmall ? 75 : 100;
-        return Math.sqrt(dx*dx + dy*dy) <= length * 0.8; // Simplificado para a área do braço
+        // Deteção mais precisa: verificar se o clique está perto do braço do flipper
+        const angle = c.angle || 0;
+        const localX = dx * Math.cos(-angle) - dy * Math.sin(-angle);
+        const localY = dx * Math.sin(-angle) + dy * Math.cos(-angle);
+        // O flipper é um retângulo estreito
+        return Math.abs(localX) <= 50 && Math.abs(localY) <= 15;
     }
 
     if (c.type.startsWith('target') || c.type === 'plunger') {
@@ -762,6 +779,7 @@ canvas.addEventListener('wheel', (e) => {
 canvas.addEventListener('click', async (e) => {
     if (isPlaying) return;
     if (isMoving) { isMoving = false; return; }
+    saveState();
     const pos = getGridPos(e);
     
     // BLOQUEIO TOTAL: Painel de Comando é sagrado
@@ -1010,6 +1028,29 @@ const drawEditor = () => {
     ctx.restore();
 
     components.forEach(c => {
+        if (c.type === 'gate') {
+            ctx.save();
+            ctx.translate(c.x, c.y);
+            ctx.rotate(c.angle || 0);
+            // Lado Verde (Passagem)
+            ctx.strokeStyle = '#00ff00';
+            ctx.lineWidth = 4;
+            ctx.beginPath();
+            ctx.moveTo(-15, 0); ctx.lineTo(0, 0);
+            ctx.stroke();
+            // Lado Vermelho (Bloqueio)
+            ctx.strokeStyle = '#ff0055';
+            ctx.beginPath();
+            ctx.moveTo(0, 0); ctx.lineTo(15, 0);
+            ctx.stroke();
+            // Seta indicativa de sentido
+            ctx.strokeStyle = '#fff';
+            ctx.lineWidth = 2;
+            ctx.beginPath();
+            ctx.moveTo(-5, -5); ctx.lineTo(5, 0); ctx.lineTo(-5, 5);
+            ctx.stroke();
+            ctx.restore();
+        }
         if (c.p0 && (c.p4 || c.p2)) {
             ctx.save();
             if (activeTheme === 'retro') {
