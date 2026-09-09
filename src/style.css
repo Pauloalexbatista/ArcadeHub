@@ -1224,3 +1224,98 @@ body.retro-theme .flipper-button:active {
     to { opacity: 1; transform: translateY(0); }
 }
 
+
+/* ========================================================
+   STRIKER 3RD GAME INTEGRATION & 3-COLUMN PORTAL HUB
+   ======================================================== */
+.center-side {
+    background: radial-gradient(circle at center, #2e0811 0%, #050103 100%);
+    border-left: 1px solid rgba(255, 0, 85, 0.15);
+    border-right: 1px solid rgba(255, 215, 0, 0.15);
+}
+.center-side:hover .split-bg {
+    transform: scale(1.15);
+    opacity: 0.18;
+}
+.center-side .split-logo { color: #fff; text-shadow: 0 0 15px #ff0055; }
+.center-side .split-logo span { color: #ff0055; text-shadow: 0 0 15px #ff0055; }
+.center-side:hover .split-desc { color: #fff; }
+.center-side .hub-btn {
+    border: 2px solid #ff0055;
+    box-shadow: 0 0 8px rgba(255, 0, 85, 0.2);
+}
+.center-side .hub-btn:hover {
+    background: #ff0055;
+    color: #fff;
+    box-shadow: 0 0 20px #ff0055;
+}
+
+.striker-side {
+    background: radial-gradient(circle at center, #1a1600 0%, #050400 100%);
+    border-left: 1px solid rgba(255, 215, 0, 0.15);
+}
+.striker-side:hover .split-bg {
+    transform: scale(1.15);
+    opacity: 0.18;
+}
+.striker-side .split-logo {
+    color: #fff;
+    text-shadow: 0 0 15px #ffd700;
+}
+.striker-side .split-logo span {
+    color: #00d166;
+    text-shadow: 0 0 15px #00d166;
+}
+.striker-side:hover .split-desc {
+    color: #fff;
+}
+.striker-side .hub-btn {
+    border: 2px solid #ffd700;
+    box-shadow: 0 0 8px rgba(255, 215, 0, 0.2);
+}
+.striker-side .hub-btn:hover {
+    background: #ffd700;
+    color: #000;
+    box-shadow: 0 0 20px #ffd700;
+}
+
+.mobile-pwa-badge {
+    display: inline-block;
+    background: rgba(0, 209, 102, 0.15);
+    border: 1px solid rgba(0, 209, 102, 0.4);
+    color: #00d166;
+    font-size: 10px;
+    font-weight: 800;
+    letter-spacing: 1px;
+    padding: 6px 12px;
+    border-radius: 20px;
+    margin-bottom: 18px;
+    text-transform: uppercase;
+    box-shadow: 0 0 10px rgba(0, 209, 102, 0.2);
+}
+
+.divider-1 {
+    left: 33.33%;
+}
+.divider-2 {
+    left: 66.66%;
+}
+
+@media (max-width: 768px) {
+    .split-side {
+        width: 100% !important;
+        height: 33.33% !important;
+    }
+    .divider-1 {
+        left: 10% !important;
+        top: 33.33% !important;
+        width: 80% !important;
+        height: 2px !important;
+    }
+    .divider-2 {
+        left: 10% !important;
+        top: 66.66% !important;
+        width: 80% !important;
+        height: 2px !important;
+    }
+}

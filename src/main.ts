@@ -4355,7 +4355,17 @@ const initArcadeHubNavigation = () => {
         switchTab('workshop');
     });
     
-    document.getElementById('hub-btn-play-f1')?.addEventListener('click', (e) => {
+    
+      document.getElementById('hub-btn-play-striker')?.addEventListener('click', () => {
+          showDisplayMessage("⚽ A INICIAR STRIKER...", "#ffd700", 2500);
+          sounds.playScoreMilestone();
+          setTimeout(() => {
+              window.location.href = window.location.origin.includes('localhost')
+                  ? 'http://localhost:3001'
+                  : 'https://striker.testeweb.site';
+          }, 1200);
+      });
+      document.getElementById('hub-btn-play-f1')?.addEventListener('click', (e) => {
         // Detetar se o ecrã é de telemóvel para bloquear o acesso ao F1
         if (window.innerWidth <= 768) {
             e.preventDefault();
