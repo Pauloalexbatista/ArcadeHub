@@ -1319,3 +1319,137 @@ body.retro-theme .flipper-button:active {
         height: 2px !important;
     }
 }
+
+
+/* ========================================================
+   WARP PORTAL MODAL & TABLE SELECTION
+======================================================== */
+#warp-modal {
+    position: fixed;
+    top: 0; left: 0; right: 0; bottom: 0;
+    background: rgba(5, 5, 12, 0.85);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+}
+
+#warp-modal.hidden {
+    display: none !important;
+}
+
+.warp-modal-content {
+    max-width: 520px;
+    width: 92%;
+    background: radial-gradient(circle at top, #160826 0%, #080310 100%);
+    border: 1px solid rgba(0, 255, 255, 0.3);
+    border-top: 4px solid #00ffff;
+    border-radius: 12px;
+    padding: 22px;
+    box-shadow: 0 0 30px rgba(0, 255, 255, 0.25), 0 10px 40px rgba(0, 0, 0, 0.9);
+    display: flex;
+    flex-direction: column;
+    max-height: 85vh;
+    box-sizing: border-box;
+}
+
+#warp-search-input {
+    width: 100%;
+    padding: 11px 14px;
+    background: rgba(0, 0, 0, 0.5);
+    border: 1px solid rgba(0, 255, 255, 0.35);
+    color: #fff;
+    border-radius: 8px;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    box-sizing: border-box;
+    transition: all 0.2s ease;
+}
+
+#warp-search-input:focus {
+    outline: none;
+    border-color: #00ffff;
+    box-shadow: 0 0 12px rgba(0, 255, 255, 0.4);
+    background: rgba(0, 20, 35, 0.7);
+}
+
+.warp-table-list {
+    flex: 1;
+    overflow-y: auto;
+    max-height: 340px;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    padding-right: 6px;
+}
+
+.warp-table-list::-webkit-scrollbar {
+    width: 6px;
+}
+
+.warp-table-list::-webkit-scrollbar-track {
+    background: rgba(255, 255, 255, 0.03);
+    border-radius: 3px;
+}
+
+.warp-table-list::-webkit-scrollbar-thumb {
+    background: rgba(0, 255, 255, 0.4);
+    border-radius: 3px;
+}
+
+.warp-table-list::-webkit-scrollbar-thumb:hover {
+    background: #00ffff;
+}
+
+.warp-table-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.04);
+    border: 1px solid rgba(0, 255, 255, 0.15);
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    color: #eee;
+    user-select: none;
+}
+
+.warp-table-item:hover {
+    background: rgba(0, 255, 255, 0.15);
+    border-color: #00ffff;
+    transform: translateX(4px);
+    color: #fff;
+    box-shadow: 0 0 12px rgba(0, 255, 255, 0.3);
+}
+
+.warp-table-item.selected {
+    background: rgba(0, 229, 255, 0.22);
+    border-color: #00e5ff;
+    box-shadow: 0 0 15px rgba(0, 229, 255, 0.45);
+    color: #00ffff;
+    font-weight: bold;
+}
+
+.warp-table-num {
+    display: inline-block;
+    min-width: 32px;
+    color: #ff00ff;
+    font-size: 11px;
+    font-weight: bold;
+}
+
+.warp-badge-current {
+    font-size: 9px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: #00e5ff;
+    color: #000;
+    font-weight: 900;
+    letter-spacing: 0.5px;
+    text-transform: uppercase;
+}

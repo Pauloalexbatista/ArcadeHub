@@ -447,6 +447,35 @@
         </div>
     </div>
 
+    <!-- Modal Warp Portal Inter-Mesas -->
+    <div id="warp-modal" class="hidden">
+        <div class="modal-content warp-modal-content">
+            <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid rgba(0,255,255,0.2); padding-bottom: 10px; margin-bottom: 12px;">
+                <h2 style="font-family: 'Orbitron', sans-serif; letter-spacing: 2px; color: #00ffff; margin: 0; font-size: 1.25rem;">🌌 WARP PORTAL</h2>
+                <button id="warp-btn-close-x" style="background: none; border: none; color: #aaa; font-size: 20px; cursor: pointer; font-family: 'Orbitron', sans-serif; transition: color 0.2s;">✕</button>
+            </div>
+            
+            <p style="font-family: 'Orbitron', sans-serif; font-size: 11px; color: #aaa; margin: 0 0 12px 0; line-height: 1.5;">
+                Configura o destino inter-mesas deste buraco. A bola será teletransportada para a mesa escolhida!
+            </p>
+
+            <div style="position: relative; margin-bottom: 10px;">
+                <input type="text" id="warp-search-input" placeholder="🔍 Filtrar por nome ou número..." autocomplete="off">
+            </div>
+
+            <div id="warp-table-count" style="font-family: 'Orbitron', sans-serif; font-size: 10px; color: #00e5ff; margin-bottom: 8px; text-transform: uppercase; letter-spacing: 1px;">
+            </div>
+
+            <div id="warp-table-list" class="warp-table-list">
+            </div>
+
+            <div class="modal-actions" style="display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap;">
+                <button id="warp-btn-disable" class="btn-secondary" style="flex: 1; min-width: 140px; padding: 10px 12px; font-size: 11px; border-color: #ff9900; color: #ff9900; border-radius: 8px;">DESATIVAR PORTAL ⭕</button>
+                <button id="warp-btn-cancel" class="btn-danger" style="padding: 10px 16px; font-size: 11px; border-radius: 8px;">FECHAR</button>
+            </div>
+        </div>
+    </div>
+
     <script type="module" src="/src/main.ts"></script>
 </body>
 </html>

@@ -835,6 +835,173 @@ canvas.addEventListener('click', async (e) => {
         return;
     }
 
+// MODAL DE CONFIGURAÇÃO DE WARP PORTAL (INTER-MESAS)
+const openWarpPortalModal = async (targetComponent: any) => {
+    const modal = document.getElementById('warp-modal');
+    const listContainer = document.getElementById('warp-table-list');
+    const countEl = document.getElementById('warp-table-count');
+    const searchInput = document.getElementById('warp-search-input') as HTMLInputElement;
+    const btnDisable = document.getElementById('warp-btn-disable');
+    const btnCancel = document.getElementById('warp-btn-cancel');
+    const btnCloseX = document.getElementById('warp-btn-close-x');
+
+    if (!modal || !listContainer) return;
+
+    // Obter mesas unificadas do servidor (API/Disco) e do localStorage
+    let availableTables: string[] = [];
+    try {
+        const res = await fetch('/api/tables');
+        if (res.ok) {
+            availableTables = await res.json();
+        }
+    } catch (err) {}
+
+    for (let i = 0; i < localStorage.length; i++) {
+        const key = localStorage.key(i);
+        if (key?.startsWith('pinball_table_')) {
+            const name = key.replace('pinball_table_', '');
+            if (!availableTables.includes(name)) {
+                availableTables.push(name);
+            }
+        }
+    }
+
+    if (searchInput) searchInput.value = '';
+
+    const closeModal = () => {
+        modal.classList.add('hidden');
+        cleanup();
+        drawEditor();
+    };
+
+    const renderList = (filterText: string = '') => {
+        listContainer.innerHTML = '';
+        const normFilter = filterText.toLowerCase().trim();
+
+        const filtered = availableTables.map((name, idx) => ({ name, originalIdx: idx + 1 }))
+            .filter(item => {
+                if (!normFilter) return true;
+                return item.name.toLowerCase().includes(normFilter) || String(item.originalIdx).includes(normFilter);
+            });
+
+        if (countEl) {
+            countEl.textContent = `${filtered.length} de ${availableTables.length} mesas disponíveis`;
+        }
+
+        if (filtered.length === 0) {
+            const emptyMsg = document.createElement('div');
+            emptyMsg.style.padding = '24px 12px';
+            emptyMsg.style.textAlign = 'center';
+            emptyMsg.style.color = '#888';
+            emptyMsg.style.fontFamily = "'Orbitron', sans-serif";
+            emptyMsg.style.fontSize = '12px';
+            emptyMsg.textContent = availableTables.length === 0 
+                ? '⚠️ Nenhuma mesa encontrada no servidor ou navegador.'
+                : '🔍 Nenhuma mesa encontrada com essa pesquisa.';
+            listContainer.appendChild(emptyMsg);
+            return;
+        }
+
+        filtered.forEach(item => {
+            const isCurrent = targetComponent.portalTable === item.name;
+            const row = document.createElement('div');
+            row.className = `warp-table-item ${isCurrent ? 'selected' : ''}`;
+            
+            const leftDiv = document.createElement('div');
+            leftDiv.style.display = 'flex';
+            leftDiv.style.alignItems = 'center';
+            leftDiv.style.gap = '10px';
+            leftDiv.style.overflow = 'hidden';
+            leftDiv.style.textOverflow = 'ellipsis';
+            leftDiv.style.whiteSpace = 'nowrap';
+
+            const numSpan = document.createElement('span');
+            numSpan.className = 'warp-table-num';
+            numSpan.textContent = `[${item.originalIdx}]`;
+
+            const nameSpan = document.createElement('span');
+            nameSpan.style.overflow = 'hidden';
+            nameSpan.style.textOverflow = 'ellipsis';
+            nameSpan.textContent = item.name;
+
+            leftDiv.appendChild(numSpan);
+            leftDiv.appendChild(nameSpan);
+            row.appendChild(leftDiv);
+
+            if (isCurrent) {
+                const badge = document.createElement('span');
+                badge.className = 'warp-badge-current';
+                badge.textContent = 'ATUAL';
+                row.appendChild(badge);
+            } else {
+                const arrow = document.createElement('span');
+                arrow.style.color = '#00ffff';
+                arrow.style.fontSize = '14px';
+                arrow.textContent = '➔';
+                row.appendChild(arrow);
+            }
+
+            row.addEventListener('click', () => {
+                targetComponent.portalTable = item.name;
+                sounds.playScoreMilestone();
+                closeModal();
+            });
+
+            listContainer.appendChild(row);
+        });
+    };
+
+    renderList();
+
+    const handleSearch = () => {
+        renderList(searchInput?.value || '');
+    };
+
+    searchInput?.addEventListener('input', handleSearch);
+
+    const onDisable = () => {
+        targetComponent.portalTable = undefined;
+        sounds.playHole();
+        closeModal();
+    };
+
+    const onCancel = () => {
+        closeModal();
+    };
+
+    const onBackdropClick = (e: MouseEvent) => {
+        if (e.target === modal) {
+            closeModal();
+        }
+    };
+
+    const onKeyDown = (e: KeyboardEvent) => {
+        if (e.key === 'Escape') {
+            closeModal();
+        }
+    };
+
+    const cleanup = () => {
+        searchInput?.removeEventListener('input', handleSearch);
+        btnDisable?.removeEventListener('click', onDisable);
+        btnCancel?.removeEventListener('click', onCancel);
+        btnCloseX?.removeEventListener('click', onCancel);
+        modal.removeEventListener('click', onBackdropClick);
+        window.removeEventListener('keydown', onKeyDown);
+    };
+
+    btnDisable?.addEventListener('click', onDisable, { once: true });
+    btnCancel?.addEventListener('click', onCancel, { once: true });
+    btnCloseX?.addEventListener('click', onCancel, { once: true });
+    modal.addEventListener('click', onBackdropClick);
+    window.addEventListener('keydown', onKeyDown);
+
+    modal.classList.remove('hidden');
+    setTimeout(() => {
+        searchInput?.focus();
+    }, 50);
+};
+
     // 1. Intercetar se o utilizador clicou exatamente no botão 🔗 (Portal) de qualquer buraco protegido colocado
     for (let c of components) {
         if (c.type.startsWith('hole-')) {
@@ -842,56 +1009,7 @@ canvas.addEventListener('click', async (e) => {
             const btnY = c.y - 24;
             const dist = Math.sqrt((pos.x - btnX)**2 + (pos.y - btnY)**2);
             if (dist <= 12) {
-                // Obter mesas unificadas do servidor (API/Disco) e do localStorage
-                let availableTables: string[] = [];
-                try {
-                    const res = await fetch('/api/tables');
-                    if (res.ok) {
-                        availableTables = await res.json();
-                    }
-                } catch (err) {}
-                
-                for (let i = 0; i < localStorage.length; i++) {
-                    const key = localStorage.key(i);
-                    if (key?.startsWith('pinball_table_')) {
-                        const name = key.replace('pinball_table_', '');
-                        if (!availableTables.includes(name)) {
-                            availableTables.push(name);
-                        }
-                    }
-                }
-                
-                let promptMsg = `🌀 CONFIGURAR WARP PORTAL INTER-MESAS 🌀\n\n`;
-                if (availableTables.length === 0) {
-                    promptMsg += `⚠️ Não tens outras mesas gravadas neste PC!\nCria e grava outras mesas primeiro no editor.\n\n`;
-                } else {
-                    promptMsg += `Mesas disponíveis no teu PC:\n`;
-                    availableTables.forEach((t, idx) => {
-                        promptMsg += `👉 [${idx + 1}] ${t}\n`;
-                    });
-                    promptMsg += `\n`;
-                }
-                promptMsg += `Digita o NÚMERO ou o NOME exato da mesa de destino para onde esta bola vai viajar:\n(Deixa em branco ou digita 0 para desativar o portal e fazê-lo trabalhar como buraco normal)`;
-                
-                const currentPortal = c.portalTable || '';
-                const ans = prompt(promptMsg, currentPortal);
-                if (ans !== null) {
-                    const cleaned = ans.trim();
-                    const num = parseInt(cleaned);
-                    if (cleaned === '' || cleaned === '0' || num === 0) {
-                        c.portalTable = undefined;
-                        alert("❌ Portal removido! Este buraco vai agora trabalhar como um buraco normal (apanha a bola e depois ejeta-a).");
-                    } else if (!isNaN(num) && num > 0 && num <= availableTables.length) {
-                        c.portalTable = availableTables[num - 1];
-                        alert(`🔗 PORTAL CONECTADO COM SUCESSO!\nEste buraco irá agora viajar para a mesa "${c.portalTable}"!`);
-                    } else if (availableTables.includes(cleaned)) {
-                        c.portalTable = cleaned;
-                        alert(`🔗 PORTAL CONECTADO COM SUCESSO!\nEste buraco irá agora viajar para a mesa "${c.portalTable}"!`);
-                    } else {
-                        alert("🛑 Nome ou número inválido. O portal não foi alterado.");
-                    }
-                }
-                drawEditor();
+                openWarpPortalModal(c);
                 return;
             }
         }
