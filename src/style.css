@@ -1168,6 +1168,69 @@ body.retro-theme .flipper-button:active {
     transform: translateY(2px) !important;
 }
 
+/* ========================================================
+   ESTILO ARCADE 1985 (TEHKAN / RETRO SALÃO DE JOGOS)
+   ======================================================== */
+body.arcade-theme {
+    --accent: #2979ff;
+    --danger: #d50000;
+    --grid-color: rgba(41, 121, 255, 0.15);
+    --grid-major: rgba(41, 121, 255, 0.35);
+}
+body.arcade-theme #in-game-header {
+    border-color: #1a237e !important;
+    background: #09132c !important;
+    color: #ffeb3b !important;
+    box-shadow: 0 0 12px rgba(41, 121, 255, 0.35) !important;
+}
+body.arcade-theme #canvas-wrapper {
+    border-color: #1a237e !important;
+    background: #040817 !important;
+    box-shadow: 0 0 20px rgba(41, 121, 255, 0.4), inset 0 0 12px rgba(0, 0, 0, 0.8) !important;
+}
+body.arcade-theme #btn-settings-toggle {
+    background: #1a237e !important;
+    border: 1px solid #2979ff !important;
+    color: #ffffff !important;
+    box-shadow: 0 0 8px rgba(41, 121, 255, 0.4) !important;
+}
+body.arcade-theme #btn-settings-toggle:hover {
+    background: #2979ff !important;
+    box-shadow: 0 0 15px #2979ff !important;
+}
+body.arcade-theme #ball-count {
+    color: #ffeb3b !important;
+    font-weight: 900;
+}
+body.arcade-theme #launch-hint {
+    background: #1a237e !important;
+    border-color: #ffeb3b !important;
+    box-shadow: 0 0 12px rgba(255, 235, 59, 0.3) !important;
+    color: #ffffff !important;
+}
+body.arcade-theme .flipper-button {
+    background: #d50000 !important;
+    border: 3px solid #ffffff !important;
+    color: #ffffff !important;
+    box-shadow: 0 4px 0 #800000, 0 0 10px rgba(213, 0, 0, 0.4) !important;
+    text-shadow: 1px 1px 0 #000 !important;
+}
+body.arcade-theme .flipper-button:active {
+    background: #ff1744 !important;
+    box-shadow: 0 2px 0 #800000 !important;
+    transform: translateY(2px) !important;
+}
+body.arcade-theme #canvas-balls {
+    background: #09132c !important;
+    border-color: #2979ff !important;
+    color: #ffeb3b !important;
+}
+body.arcade-theme .ball-indicator-icon {
+    background: radial-gradient(circle at 35% 35%, #ffffff 0%, #90caf9 50%, #0d47a1 100%) !important;
+    box-shadow: 0 0 6px #2979ff !important;
+}
+
+
 /* Estilização Dedicada do Modal de Regras / Ajuda */
 #rules-modal {
     position: fixed;

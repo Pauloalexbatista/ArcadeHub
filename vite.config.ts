@@ -25,7 +25,11 @@ export default defineConfig({
                 try {
                   const data = JSON.parse(body);
                   const name = data.name.replace(/[^a-zA-Z0-9_\- ]/g, '').trim() || 'Sem_Nome';
-                  fs.writeFileSync(path.join(tablesDir, `${name}.json`), JSON.stringify(data.components, null, 2));
+                  let compsToSave = Array.isArray(data.components) ? data.components.filter(c => c && c.type !== 'table-meta') : [];
+                  if (data.bgColor) {
+                    compsToSave.push({ type: 'table-meta', bgColor: data.bgColor });
+                  }
+                  fs.writeFileSync(path.join(tablesDir, `${name}.json`), JSON.stringify(compsToSave, null, 2));
                   res.setHeader('Content-Type', 'application/json');
                   res.end(JSON.stringify({ success: true, name }));
                 } catch (e) {

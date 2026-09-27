@@ -125,6 +125,19 @@ class SoundEffects {
                 osc.start(now);
                 osc.stop(now + 0.35);
             });
+        } else if (activeTheme === 'arcade') {
+            // Chiptune arcade 1985 (Pinball Action): square wave com descida r?pida percussiva
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(880, now);
+            osc.frequency.exponentialRampToValueAtTime(320, now + 0.08);
+            gain.gain.setValueAtTime(0.18, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.09);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.1);
         } else {
             // Oscilador principal (Bumper de alta frequência metálico)
             const osc = this.ctx.createOscillator();
@@ -178,6 +191,19 @@ class SoundEffects {
                 osc.start(now);
                 osc.stop(now + 0.28);
             });
+        } else if (activeTheme === 'arcade') {
+            // Chiptune arcade blip duplo 8-bit de alvo
+            const osc = this.ctx.createOscillator();
+            const gain = this.ctx.createGain();
+            osc.type = 'square';
+            osc.frequency.setValueAtTime(1200, now);
+            osc.frequency.setValueAtTime(1800, now + 0.03);
+            gain.gain.setValueAtTime(0.14, now);
+            gain.gain.exponentialRampToValueAtTime(0.001, now + 0.08);
+            osc.connect(gain);
+            gain.connect(this.ctx.destination);
+            osc.start(now);
+            osc.stop(now + 0.09);
         } else {
             // Dois osciladores em harmonia (Chime duplo de alvo)
             const osc1 = this.ctx.createOscillator();
@@ -405,7 +431,27 @@ const redo = () => {
         drawEditor();
     }
 };
-let activeTheme: 'neon' | 'retro' = 'neon';
+let activeTheme: 'neon' | 'retro' | 'arcade' = 'arcade';
+let currentTableBgColor: string = '#0a1c4d'; // Azul escuro por defeito (Arcade)
+let parentTableBgColor: string = '#0a1c4d';
+
+const applyLoadedTableData = (raw: any) => {
+    if (Array.isArray(raw)) {
+        const meta = raw.find((c: any) => c && c.type === 'table-meta');
+        currentTableBgColor = (meta && meta.bgColor) ? meta.bgColor : (currentTableBgColor || '#0a1c4d');
+        components = raw.filter((c: any) => c && c.type !== 'table-meta');
+    } else if (raw && typeof raw === 'object') {
+        currentTableBgColor = raw.bgColor || (currentTableBgColor || '#0a1c4d');
+        const rawComps = Array.isArray(raw.components) ? raw.components : [];
+        components = rawComps.filter((c: any) => c && c.type !== 'table-meta');
+    } else {
+        components = [];
+        currentTableBgColor = '#0a1c4d';
+    }
+    const picker = document.getElementById('arcade-bg-picker') as HTMLInputElement;
+    if (picker) picker.value = currentTableBgColor;
+};
+
 let currentTool: Tool = 'pin';
 let isPlaying = false;
 let components: any[] = [];
@@ -1090,6 +1136,45 @@ const drawBackground = () => {
         ctx.strokeStyle = '#d4af37'; ctx.lineWidth = 1;
         ctx.strokeRect(WIDTH * 0.15 + 3, PLAY_ZONE_BOTTOM + 38 + 3, WIDTH * 0.7 - 6, 54 - 6);
         ctx.restore();
+    } else if (activeTheme === 'arcade') {
+        // FUNDO ARCADE PERSONALIZÁVEL (Pinball Action 1985)
+        // 1. Preenchimento da área jogável com a cor da mesa (currentTableBgColor)
+        ctx.fillStyle = currentTableBgColor || '#0a1c4d';
+        ctx.fillRect(0, 0, WIDTH, PLAY_ZONE_BOTTOM);
+        
+        // 2. Fundo do Painel Inferior do Móvel (Azul escuro/preto gabinete arcade)
+        ctx.fillStyle = '#060a18';
+        ctx.fillRect(0, PLAY_ZONE_BOTTOM, WIDTH, HEIGHT - PLAY_ZONE_BOTTOM);
+        
+        // 3. Moldura Exterior do Móvel Arcade: Bisel azul elétrico Tehkan e friso cromado
+        ctx.strokeStyle = '#1a237e'; ctx.lineWidth = 8;
+        ctx.strokeRect(4, 4, WIDTH - 8, HEIGHT - 8);
+        ctx.strokeStyle = '#2979ff'; ctx.lineWidth = 3;
+        ctx.strokeRect(8, 8, WIDTH - 16, HEIGHT - 16);
+        ctx.strokeStyle = 'rgba(255, 255, 255, 0.45)'; ctx.lineWidth = 1;
+        ctx.strokeRect(10, 10, WIDTH - 20, HEIGHT - 20);
+        
+        // 4. Barra Divisória da Área de Jogo com chapa metálica
+        ctx.strokeStyle = '#2979ff'; ctx.lineWidth = 4;
+        ctx.beginPath(); ctx.moveTo(0, PLAY_ZONE_BOTTOM); ctx.lineTo(WIDTH, PLAY_ZONE_BOTTOM); ctx.stroke();
+        ctx.strokeStyle = '#ffffff'; ctx.lineWidth = 1.5;
+        ctx.beginPath(); ctx.moveTo(0, PLAY_ZONE_BOTTOM - 2); ctx.lineTo(WIDTH, PLAY_ZONE_BOTTOM - 2); ctx.stroke();
+
+        // 5. Visor LCD/Arcade de Mensagens (Chanfrado azul estilo salão de 1985)
+        ctx.save();
+        const boxX = WIDTH * 0.15, boxY = PLAY_ZONE_BOTTOM + 38, boxW = WIDTH * 0.7, boxH = 54;
+        ctx.fillStyle = '#0a122c';
+        ctx.strokeStyle = '#2979ff'; ctx.lineWidth = 3;
+        ctx.beginPath(); ctx.roundRect(boxX, boxY, boxW, boxH, 4); ctx.fill(); ctx.stroke();
+        ctx.strokeStyle = '#82b1ff'; ctx.lineWidth = 1;
+        ctx.strokeRect(boxX + 2, boxY + 2, boxW - 4, boxH - 4);
+        
+        // Linhas de scanline CRT subtis no display
+        ctx.strokeStyle = 'rgba(41, 121, 255, 0.12)'; ctx.lineWidth = 1;
+        for (let y = boxY + 3; y < boxY + boxH; y += 3) {
+            ctx.beginPath(); ctx.moveTo(boxX + 4, y); ctx.lineTo(boxX + boxW - 4, y); ctx.stroke();
+        }
+        ctx.restore();
     } else {
         ctx.clearRect(0, 0, WIDTH, HEIGHT);
         
@@ -1129,7 +1214,7 @@ const drawEditor = () => {
     
     // Linhas de ajuda vertical e horizontal exatamente no centro da mesa (Eixos simétricos)
     ctx.save();
-    ctx.strokeStyle = activeTheme === 'retro' ? 'rgba(62, 39, 35, 0.45)' : 'rgba(0, 255, 255, 0.45)';
+    ctx.strokeStyle = activeTheme === 'retro' ? 'rgba(62, 39, 35, 0.45)' : (activeTheme === 'arcade' ? 'rgba(41, 121, 255, 0.45)' : 'rgba(0, 255, 255, 0.45)');
     ctx.lineWidth = 2;
     ctx.setLineDash([8, 8]);
     
@@ -1165,18 +1250,24 @@ const drawEditor = () => {
     
     // Espaço para Mensagens (Caixa central)
     if (activeTheme === 'retro') {
+    if (activeTheme === 'retro') {
         ctx.strokeStyle = 'rgba(62, 39, 35, 0.25)';
+    } else if (activeTheme === 'arcade') {
+        ctx.strokeStyle = 'rgba(41, 121, 255, 0.35)';
     } else {
         ctx.strokeStyle = 'rgba(0, 255, 255, 0.2)';
     }
     ctx.setLineDash([5, 5]);
     ctx.strokeRect(WIDTH / 2 - 80, PLAY_ZONE_BOTTOM + 25, 160, 70);
-    
+
     ctx.shadowBlur = 0; ctx.setLineDash([]);
     if (activeTheme === 'retro') {
         ctx.fillStyle = '#3e2723';
+    } else if (activeTheme === 'arcade') {
+        ctx.fillStyle = '#82b1ff';
     } else {
         ctx.fillStyle = 'rgba(0, 255, 255, 0.3)';
+    }
     }
     ctx.font = 'bold 10px Orbitron'; ctx.textAlign = 'center';
     ctx.fillText('MENSAGENS DO SISTEMA', WIDTH / 2, PLAY_ZONE_BOTTOM + 20);
@@ -1282,13 +1373,40 @@ const drawEditor = () => {
                     ctx.fill();
                 }
             } else if (activeTheme === 'retro') {
-                ctx.strokeStyle = c.type === 'wall-b' ? '#d32f2f' : '#3e2723'; // Elásticos vermelhos (wall-b) e paredes de madeira escura (wall)!
+                ctx.strokeStyle = c.type === 'wall-b' ? '#d32f2f' : '#3e2723';
                 ctx.lineWidth = 6;
                 ctx.lineCap = 'round';
                 ctx.shadowBlur = 0;
-                
+
                 ctx.beginPath();
                 const startPt = getBezierPoint(c, 0);
+                ctx.moveTo(startPt.x, startPt.y);
+                for (let i = 1; i <= 20; i++) {
+                    const pt = getBezierPoint(c, i / 20);
+                    ctx.lineTo(pt.x, pt.y);
+                }
+                ctx.stroke();
+            } else if (activeTheme === 'arcade') {
+                // ARCADE NO EDITOR:
+                // wall-b ? borracha el?stica vermelha pura; wall ? calha guia de metal/acr?lico azul Tehkan
+                ctx.strokeStyle = c.type === 'wall-b' ? '#d50000' : '#82b1ff';
+                ctx.lineWidth = c.type === 'wall-b' ? 7 : 5;
+                ctx.lineCap = 'round';
+                ctx.shadowBlur = 0;
+
+                ctx.beginPath();
+                const startPt = getBezierPoint(c, 0);
+                ctx.moveTo(startPt.x, startPt.y);
+                for (let i = 1; i <= 20; i++) {
+                    const pt = getBezierPoint(c, i / 20);
+                    ctx.lineTo(pt.x, pt.y);
+                }
+                ctx.stroke();
+
+                // Friso interior na calha ou na borracha
+                ctx.strokeStyle = c.type === 'wall-b' ? '#ff8a80' : '#ffffff';
+                ctx.lineWidth = 1.5;
+                ctx.beginPath();
                 ctx.moveTo(startPt.x, startPt.y);
                 for (let i = 1; i <= 20; i++) {
                     const pt = getBezierPoint(c, i / 20);
@@ -1428,6 +1546,13 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             ctx.fillStyle = '#111111'; 
             ctx.strokeStyle = '#3e2723'; ctx.lineWidth = 1.5;
             ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        } else if (activeTheme === 'arcade') {
+            // Postes de aço cromado arcade com anilha branca e topo vermelho
+            ctx.fillStyle = '#ffffff'; 
+            ctx.strokeStyle = '#000000'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = '#d50000';
+            ctx.beginPath(); ctx.arc(0, 0, 2.5, 0, Math.PI*2); ctx.fill();
         } else {
             ctx.fillStyle = '#fff'; 
             ctx.strokeStyle = '#00ffff'; ctx.lineWidth = 2;
@@ -1439,9 +1564,9 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         if (isActive) {
             ctx.save();
             const pulse = 1 + 0.15 * Math.sin(Date.now() * 0.008);
-            ctx.strokeStyle = activeTheme === 'retro' ? '#111111' : '#ffa500';
+            ctx.strokeStyle = activeTheme === 'retro' ? '#111111' : (activeTheme === 'arcade' ? '#ffeb3b' : '#ffa500');
             ctx.lineWidth = 2;
-            ctx.shadowBlur = activeTheme === 'retro' ? 0 : 15;
+            ctx.shadowBlur = activeTheme === 'retro' ? 0 : (activeTheme === 'arcade' ? 0 : 15);
             ctx.shadowColor = '#ffa500';
             ctx.setLineDash([4, 4]);
             ctx.beginPath();
@@ -1449,15 +1574,15 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             ctx.stroke();
             ctx.setLineDash([]);
             
-            ctx.fillStyle = activeTheme === 'retro' ? '#111111' : '#ffeb3b';
+            ctx.fillStyle = activeTheme === 'retro' ? '#111111' : (activeTheme === 'arcade' ? '#2979ff' : '#ffeb3b');
             ctx.beginPath();
             ctx.arc(0, 0, 6, 0, Math.PI * 2);
             ctx.fill();
-            ctx.strokeStyle = activeTheme === 'retro' ? '#3e2723' : '#fff';
+            ctx.strokeStyle = activeTheme === 'retro' ? '#3e2723' : (activeTheme === 'arcade' ? '#ffffff' : '#fff');
             ctx.lineWidth = 1.5;
             ctx.stroke();
             
-            ctx.fillStyle = activeTheme === 'retro' ? '#cfd8dc' : '#fff';
+            ctx.fillStyle = activeTheme === 'retro' ? '#cfd8dc' : (activeTheme === 'arcade' ? '#ffea00' : '#fff');
             ctx.beginPath();
             ctx.arc(-2, -2, 1.5, 0, Math.PI * 2);
             ctx.fill();
@@ -1542,6 +1667,68 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
                 ctx.lineTo(Math.cos(nextAngle) * rInner, Math.sin(nextAngle) * rInner);
             }
             ctx.closePath(); ctx.fill();
+        } else if (activeTheme === 'arcade') {
+            // BUMPER ARCADE (PINBALL ACTION 1985)
+            const isHit = extraData.hit;
+            ctx.save();
+            
+            if (isTri) {
+                // Bumper triangular arcade (Slingshot bumper)
+                const w = isLarge ? 43.3 : 26; const h = isLarge ? 25 : 15;
+                ctx.fillStyle = isHit ? '#ffffff' : '#f5f5f5';
+                ctx.strokeStyle = '#000000'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(0, -radius); ctx.lineTo(w, h); ctx.lineTo(-w, h); ctx.closePath();
+                ctx.fill(); ctx.stroke();
+                
+                // Miolo triangular colorido
+                ctx.fillStyle = isHit ? '#ff1744' : '#2979ff';
+                ctx.beginPath(); ctx.moveTo(0, -radius * 0.62); ctx.lineTo(w * 0.62, h * 0.62); ctx.lineTo(-w * 0.62, h * 0.62); ctx.closePath();
+                ctx.fill();
+            } else {
+                // RODA DENTADA EXTERIOR / ESTRELA ARCADE (Pinball Action Teeth)
+                const numTeeth = isLarge ? 12 : 8;
+                ctx.fillStyle = isHit ? '#ffff00' : '#d50000';
+                ctx.beginPath();
+                for (let i = 0; i < numTeeth * 2; i++) {
+                    const a = (i * Math.PI) / numTeeth;
+                    const r = (i % 2 === 0) ? radius : radius * 0.82;
+                    if (i === 0) ctx.moveTo(Math.cos(a) * r, Math.sin(a) * r);
+                    else ctx.lineTo(Math.cos(a) * r, Math.sin(a) * r);
+                }
+                ctx.closePath();
+                ctx.fill();
+                ctx.strokeStyle = '#000000'; ctx.lineWidth = 2; ctx.stroke();
+
+                // CÚPULA BRANCA INTERIOR
+                const innerR = radius * 0.72;
+                ctx.fillStyle = isHit ? '#ffffff' : '#f8f9fa';
+                ctx.beginPath(); ctx.arc(0, 0, innerR, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#000000'; ctx.lineWidth = 2; ctx.stroke();
+
+                // RAIOS DA RODA (SPOKES AZUIS/VERMELHOS TEHKAN)
+                const spokes = 8;
+                ctx.strokeStyle = isHit ? '#ff1744' : '#0d47a1';
+                ctx.lineWidth = isLarge ? 4 : 3;
+                for (let i = 0; i < spokes; i++) {
+                    const a = (i * Math.PI) / (spokes / 2);
+                    ctx.beginPath();
+                    ctx.moveTo(Math.cos(a) * (innerR * 0.28), Math.sin(a) * (innerR * 0.28));
+                    ctx.lineTo(Math.cos(a) * (innerR * 0.92), Math.sin(a) * (innerR * 0.92));
+                    ctx.stroke();
+                }
+
+                // CENTRO METÁLICO CROMADO COM NÚMERO OU ANEL
+                ctx.fillStyle = '#ffffff';
+                ctx.beginPath(); ctx.arc(0, 0, innerR * 0.4, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#000000'; ctx.lineWidth = 1.5; ctx.stroke();
+                
+                // Texto arcade 100 no centro do bumper
+                ctx.fillStyle = '#000000';
+                ctx.font = isLarge ? "bold 15px 'Orbitron', monospace" : "bold 11px 'Orbitron', monospace";
+                ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+                ctx.fillText(isLarge ? '100' : '50', 0, 1);
+            }
+            ctx.restore();
         } else {
             // No tema néon: o bumper só emite luz própria (shadowBlur e tom branco) quando é batido!
             ctx.fillStyle = extraData.hit ? '#ffffff' : 'rgba(0, 255, 255, 0.35)';
@@ -1570,6 +1757,9 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         if (activeTheme === 'retro') {
             // Corpo do flipper clássico em plástico branco com rebordo preto espesso
             ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#000000'; ctx.lineWidth = 4.5;
+        } else if (activeTheme === 'arcade') {
+            // Flipper arcade branco puro com rebordo preto clássico
+            ctx.fillStyle = '#ffffff'; ctx.strokeStyle = '#000000'; ctx.lineWidth = 4;
         } else {
             ctx.fillStyle = extraData.hit ? '#fff' : '#ff00ff'; ctx.strokeStyle = '#fff'; ctx.lineWidth = 3;
             ctx.shadowBlur = 15; ctx.shadowColor = '#ff00ff';
@@ -1598,6 +1788,20 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             // Adicionar tampa metálica clássica central sobre o eixo de rotação
             ctx.fillStyle = '#cfd8dc'; ctx.strokeStyle = '#37474f'; ctx.lineWidth = 1.5;
             ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+        } else if (activeTheme === 'arcade') {
+            // Tampa central metálica cromada no eixo
+            ctx.fillStyle = '#e0e0e0'; ctx.strokeStyle = '#000000'; ctx.lineWidth = 1.5;
+            ctx.beginPath(); ctx.arc(0, 0, 5, 0, Math.PI*2); ctx.fill(); ctx.stroke();
+            
+            // Faixa de borracha amarela na face de impacto (Pinball Action)
+            ctx.strokeStyle = '#ffea00'; ctx.lineWidth = 3.5;
+            ctx.beginPath();
+            if (!isRight) {
+                ctx.moveTo(0, r1 - 1); ctx.lineTo(length - r2, r2 - 1);
+            } else {
+                ctx.moveTo(0, -r1 + 1); ctx.lineTo(-(length - r2), -r2 + 1);
+            }
+            ctx.stroke();
         }
     } else if (c.type === 'wall' || c.type === 'wall-b' || c.type === 'gate') {
         const w = c.w !== undefined ? c.w : 80;
@@ -1905,16 +2109,15 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
         }
     } else if (c.type.startsWith('hole-')) {
         const isGateOpen = isPlaying ? extraData.active : false;
-        
+
         if (activeTheme === 'retro') {
-            // Pintar o fundo dentro da caixa com a cor correspondente em mate (sem neon/brilhos)
             const mateColor = c.type === 'hole-g' ? '#388e3c' : (c.type === 'hole-r' ? '#d32f2f' : (c.type === 'hole-b' ? '#1976d2' : '#fbc02d'));
             ctx.fillStyle = mateColor;
             ctx.beginPath();
             ctx.roundRect(-24, -24, 48, 48, 4);
             ctx.fill();
 
-            // Desenhar caixa U protetora em madeira sólida clássica (Nogueira escura)
+            // Desenhar caixa U protetora em madeira s?lida cl?ssica
             ctx.strokeStyle = '#3e2723';
             ctx.lineWidth = 5;
             ctx.shadowBlur = 0;
@@ -1925,32 +2128,63 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             ctx.lineTo(26, -26);
             ctx.lineTo(26, 26);
             ctx.stroke();
-            
-            // Porta/Portão de ripa de madeira fechado ou aberto
+
             if (!isGateOpen) {
-                ctx.strokeStyle = '#8b5a2b'; // Ripa de madeira de carvalho fecha o portão
+                ctx.strokeStyle = '#8b5a2b';
                 ctx.lineWidth = 6;
                 ctx.beginPath();
                 ctx.moveTo(-26, 26);
                 ctx.lineTo(26, 26);
                 ctx.stroke();
             }
-            
-            // Buraco interior centrado em (0, 0) - Fica a preto puro!
+
+            // Buraco interior centrado
             ctx.fillStyle = '#000000';
             ctx.beginPath();
             ctx.arc(0, 0, 14, 0, Math.PI * 2);
             ctx.fill();
-            
+
             ctx.strokeStyle = '#3e2723';
             ctx.lineWidth = 2;
             ctx.beginPath();
             ctx.arc(0, 0, 14, 0, Math.PI * 2);
             ctx.stroke();
+        } else if (activeTheme === 'arcade') {
+            // BURACCO PORTAL ARCADE (WARP GATES PINBALL ACTION 1985)
+            const color = c.type === 'hole-g' ? '#00e676' : (c.type === 'hole-r' ? '#ff1744' : (c.type === 'hole-b' ? '#2979ff' : '#ffea00'));
+            ctx.shadowBlur = 0;
+
+            // Caixa do portal com moldura arcade espessa
+            ctx.fillStyle = '#060a18';
+            ctx.beginPath(); ctx.roundRect(-26, -26, 52, 52, 4); ctx.fill();
+            ctx.strokeStyle = color; ctx.lineWidth = 4; ctx.stroke();
+            ctx.strokeStyle = '#000000'; ctx.lineWidth = 1.5; ctx.strokeRect(-28, -28, 56, 56);
+
+            // Po?o central escuro
+            ctx.fillStyle = '#000000';
+            ctx.beginPath(); ctx.arc(0, 0, 14, 0, Math.PI * 2); ctx.fill();
+            ctx.strokeStyle = color; ctx.lineWidth = 2; ctx.stroke();
+
+            if (!isGateOpen) {
+                // Port?o fechado: barra met?lica transversal com aviso
+                ctx.fillStyle = '#212121';
+                ctx.fillRect(-26, 20, 52, 8);
+                ctx.strokeStyle = color; ctx.lineWidth = 2;
+                ctx.strokeRect(-26, 20, 52, 8);
+
+                ctx.strokeStyle = '#ff1744'; ctx.lineWidth = 3;
+                ctx.beginPath(); ctx.moveTo(-24, 24); ctx.lineTo(24, 24); ctx.stroke();
+            } else {
+                // Port?o aberto: setas arcade a apontar para dentro do buraco!
+                const pulse = (Math.floor(Date.now() / 200) % 2 === 0);
+                ctx.fillStyle = pulse ? '#ffffff' : color;
+                ctx.beginPath();
+                ctx.moveTo(-6, -18); ctx.lineTo(0, -13); ctx.lineTo(6, -18);
+                ctx.closePath(); ctx.fill();
+            }
         } else {
             const color = c.type === 'hole-g' ? '#00ff00' : (c.type === 'hole-r' ? '#ff0055' : (c.type === 'hole-b' ? '#00ffff' : '#ffeb3b'));
-            
-            // Desenhar a caixa U protetora - Quadrado Perfeito Simétrico (52x52 de lado a lado)
+
             ctx.strokeStyle = color;
             ctx.lineWidth = 4;
             ctx.shadowBlur = 10;
@@ -1962,10 +2196,8 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
             ctx.lineTo(26, -26);
             ctx.lineTo(26, 26);
             ctx.stroke();
-            
-            // Desenhar o portão/porta
+
             if (!isGateOpen) {
-                // Desenhar laser de segurança fechado (linha brilhante espessa)
                 ctx.strokeStyle = color;
                 ctx.lineWidth = 6;
                 ctx.shadowBlur = 15;
@@ -1973,55 +2205,37 @@ const drawComponent = (c: any, isPlaying: boolean, extraData: any = {}) => {
                 ctx.moveTo(-26, 26);
                 ctx.lineTo(26, 26);
                 ctx.stroke();
-                
-                // Padrão de laser interno
+
                 ctx.strokeStyle = '#fff';
                 ctx.lineWidth = 2;
                 ctx.beginPath();
                 ctx.moveTo(-26, 26);
                 ctx.lineTo(26, 26);
                 ctx.stroke();
-            } else {
-                // Desenhar laser aberto ou desativado (linha pontilhada muito ténue)
-                ctx.strokeStyle = 'rgba(255, 255, 255, 0.1)';
-                ctx.lineWidth = 2;
-                ctx.setLineDash([4, 4]);
-                ctx.beginPath();
-                ctx.moveTo(-26, 26);
-                ctx.lineTo(26, 26);
-                ctx.stroke();
-                ctx.setLineDash([]);
             }
-            
-            // Desenhar o buraco interior centrado em (0, 0)
-            ctx.fillStyle = '#110520';
+
+            ctx.fillStyle = '#050109';
             ctx.shadowBlur = 0;
             ctx.beginPath();
             ctx.arc(0, 0, 14, 0, Math.PI * 2);
             ctx.fill();
-            
+
             ctx.strokeStyle = color;
             ctx.lineWidth = 2;
+            ctx.shadowBlur = isGateOpen ? 15 : 5;
+            ctx.shadowColor = color;
             ctx.beginPath();
             ctx.arc(0, 0, 14, 0, Math.PI * 2);
             ctx.stroke();
-            
-            // Desenhar centro brilhante do buraco centrado em (0, 0)
-            ctx.fillStyle = isGateOpen ? color : 'rgba(255,255,255,0.1)';
-            ctx.beginPath();
-            ctx.arc(0, 0, 4, 0, Math.PI * 2);
-            ctx.fill();
         }
- 
-        // Desenhar indicador visual se o buraco for um portal de mesa associado
         if (c.portalTable) {
             ctx.save();
-            ctx.strokeStyle = activeTheme === 'retro' ? '#d4af37' : '#00ffff'; ctx.lineWidth = 1.5; ctx.setLineDash([2, 2]);
+            ctx.strokeStyle = activeTheme === 'retro' ? '#d4af37' : (activeTheme === 'arcade' ? '#82b1ff' : '#00ffff'); ctx.lineWidth = 1.5; ctx.setLineDash([2, 2]);
             ctx.shadowBlur = activeTheme === 'retro' ? 0 : 8; ctx.shadowColor = '#00ffff';
             ctx.beginPath(); ctx.arc(0, 0, 11, 0, Math.PI * 2); ctx.stroke();
             ctx.setLineDash([]); ctx.shadowBlur = 0;
             
-            ctx.fillStyle = activeTheme === 'retro' ? '#3e2723' : '#00ffff'; ctx.font = 'bold 9px Orbitron'; ctx.textAlign = 'center';
+            ctx.fillStyle = activeTheme === 'retro' ? '#3e2723' : (activeTheme === 'arcade' ? '#82b1ff' : '#00ffff'); ctx.font = 'bold 9px Orbitron'; ctx.textAlign = 'center';
             ctx.fillText("PORTAL", 0, -16);
             ctx.restore();
         }
@@ -3118,18 +3332,26 @@ const runGameSimulation = (isWarping = false) => {
             ctx.shadowBlur = 0;
             ctx.fillStyle = keysPressed.has('a') || keysPressed.has('arrowleft') ? 'rgba(139, 90, 43, 0.4)' : 'rgba(139, 90, 43, 0.15)';
             ctx.beginPath(); ctx.arc(65, PLAY_ZONE_BOTTOM + 60, 40, 0, Math.PI*2); ctx.fill();
-            
+
             ctx.fillStyle = keysPressed.has('d') || keysPressed.has('arrowright') ? 'rgba(139, 90, 43, 0.4)' : 'rgba(139, 90, 43, 0.15)';
             ctx.beginPath(); ctx.arc(WIDTH - 65, PLAY_ZONE_BOTTOM + 60, 40, 0, Math.PI*2); ctx.fill();
+        } else if (activeTheme === 'arcade') {
+            ctx.shadowBlur = 0;
+            ctx.fillStyle = keysPressed.has('a') || keysPressed.has('arrowleft') ? 'rgba(41, 121, 255, 0.5)' : 'rgba(41, 121, 255, 0.18)';
+            ctx.beginPath(); ctx.arc(65, PLAY_ZONE_BOTTOM + 60, 40, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#2979ff'; ctx.lineWidth = 2; ctx.stroke();
+
+            ctx.fillStyle = keysPressed.has('d') || keysPressed.has('arrowright') ? 'rgba(213, 0, 0, 0.5)' : 'rgba(213, 0, 0, 0.18)';
+            ctx.beginPath(); ctx.arc(WIDTH - 65, PLAY_ZONE_BOTTOM + 60, 40, 0, Math.PI*2); ctx.fill();
+            ctx.strokeStyle = '#d50000'; ctx.lineWidth = 2; ctx.stroke();
         } else {
             ctx.shadowBlur = 10; ctx.shadowColor = '#ff00ff';
             ctx.fillStyle = keysPressed.has('a') || keysPressed.has('arrowleft') ? 'rgba(255,0,255,0.4)' : 'rgba(255,0,255,0.1)';
             ctx.beginPath(); ctx.arc(65, PLAY_ZONE_BOTTOM + 60, 40, 0, Math.PI*2); ctx.fill();
-            
+
             ctx.fillStyle = keysPressed.has('d') || keysPressed.has('arrowright') ? 'rgba(255,0,255,0.4)' : 'rgba(255,0,255,0.1)';
             ctx.beginPath(); ctx.arc(WIDTH - 65, PLAY_ZONE_BOTTOM + 60, 40, 0, Math.PI*2); ctx.fill();
         }
-
         const now = Date.now();
         let activeMsg = '';
         let activeColor = '';
@@ -3164,18 +3386,18 @@ const runGameSimulation = (isWarping = false) => {
             const centerY = PLAY_ZONE_BOTTOM + 38 + 27; 
 
             if (activeTheme === 'retro') {
-                // Estilo LCD clássico com contraste profundo na madeira
                 ctx.fillStyle = activeColor;
                 ctx.globalAlpha = globalAlpha;
                 ctx.shadowBlur = 0;
+            } else if (activeTheme === 'arcade') {
+                ctx.fillStyle = activeColor || '#ffea00';
+                ctx.globalAlpha = globalAlpha;
+                ctx.shadowBlur = 0;
             } else {
-                // Estilo Cyber Neon Brilhante
                 ctx.shadowBlur = 15;
                 ctx.shadowColor = activeColor;
-                // Preenchimento com opacidade baseada na pulsação
                 ctx.fillStyle = `rgba(255, 255, 255, ${globalAlpha})`;
             }
-
             const parts = activeMsg.split('\n');
             if (parts.length > 1) {
                 // Offset para compensar 2 linhas
@@ -3195,11 +3417,11 @@ const runGameSimulation = (isWarping = false) => {
                 if (c.type === 'gate') {
                     const segments = 20;
                     const isRetro = activeTheme === 'retro';
-                    
-                    // Configurações do tema clássico vs neon
-                    const colorGreen = isRetro ? '#2e7d32' : '#00ff00';
-                    const colorRed = isRetro ? '#c62828' : '#ff0055';
-                    const shadow = isRetro ? 0 : 8;
+                    const isArcade = activeTheme === 'arcade';
+
+                    const colorGreen = isRetro ? '#2e7d32' : (isArcade ? '#00e676' : '#00ff00');
+                    const colorRed = isRetro ? '#c62828' : (isArcade ? '#ff1744' : '#ff0055');
+                    const shadow = (isRetro || isArcade) ? 0 : 8;
 
                     // Lado Verde (allowed entry side, Y < 0) -> offset by -nx * 4, -ny * 4
                     ctx.strokeStyle = colorGreen;
@@ -3246,49 +3468,77 @@ const runGameSimulation = (isWarping = false) => {
                     ctx.stroke();
 
                     // Desenhar pinos de dobradiça em latão clássico se for tema retro
-                    if (isRetro) {
+                    if (isRetro || isArcade) {
                         const endPtG = getBezierPoint(c, 1);
-                        
+
                         // Suporte P0
-                        ctx.fillStyle = '#d4af37';
-                        ctx.strokeStyle = '#3e2723';
+                        ctx.fillStyle = isArcade ? '#e0e0e0' : '#d4af37';
+                        ctx.strokeStyle = isArcade ? '#000000' : '#3e2723';
                         ctx.lineWidth = 1.5;
-                        
+
                         ctx.beginPath();
                         ctx.arc(startPtG.x, startPtG.y, 5, 0, Math.PI * 2);
                         ctx.fill();
                         ctx.stroke();
-                        
-                        // Brilho metálico no pino
+
+                        // Brilho met?lico no pino
                         ctx.fillStyle = '#fff';
                         ctx.beginPath();
                         ctx.arc(startPtG.x - 1.5, startPtG.y - 1.5, 1.2, 0, Math.PI * 2);
                         ctx.fill();
 
                         // Suporte P4/P2
-                        ctx.fillStyle = '#d4af37';
+                        ctx.fillStyle = isArcade ? '#e0e0e0' : '#d4af37';
                         ctx.beginPath();
                         ctx.arc(endPtG.x, endPtG.y, 5, 0, Math.PI * 2);
                         ctx.fill();
                         ctx.stroke();
 
-                        // Brilho metálico
+                        // Brilho met?lico
                         ctx.fillStyle = '#fff';
                         ctx.beginPath();
                         ctx.arc(endPtG.x - 1.5, endPtG.y - 1.5, 1.2, 0, Math.PI * 2);
                         ctx.fill();
                     }
                 } else if (activeTheme === 'retro') {
-                    ctx.strokeStyle = c.type === 'wall-b' ? '#d32f2f' : '#3e2723'; // Elásticos vermelhos (wall-b) e paredes de madeira (wall)!
+                    ctx.strokeStyle = c.type === 'wall-b' ? '#d32f2f' : '#3e2723';
                     if (now < (c.hitTimer || 0)) {
-                        ctx.strokeStyle = c.type === 'wall-b' ? '#ff5252' : '#5d4037'; // Feedback suave ao bater
+                        ctx.strokeStyle = c.type === 'wall-b' ? '#ff5252' : '#5d4037';
                     }
                     ctx.lineWidth = 6;
                     ctx.lineCap = 'round';
                     ctx.shadowBlur = 0;
-                    
+
                     ctx.beginPath();
                     const startPt = getBezierPoint(c, 0);
+                    ctx.moveTo(startPt.x, startPt.y);
+                    for (let i = 1; i <= 20; i++) {
+                        const pt = getBezierPoint(c, i / 20);
+                        ctx.lineTo(pt.x, pt.y);
+                    }
+                    ctx.stroke();
+                } else if (activeTheme === 'arcade') {
+                    // ARCADE DURANTE O JOGO:
+                    // wall-b ? borracha vermelha pura (pisca amarelo no embate); wall ? calha guia azul Tehkan
+                    const isHit = now < (c.hitTimer || 0);
+                    ctx.strokeStyle = c.type === 'wall-b' ? (isHit ? '#ffff00' : '#d50000') : (isHit ? '#ffffff' : '#82b1ff');
+                    ctx.lineWidth = c.type === 'wall-b' ? 7 : 5;
+                    ctx.lineCap = 'round';
+                    ctx.shadowBlur = 0;
+
+                    ctx.beginPath();
+                    const startPt = getBezierPoint(c, 0);
+                    ctx.moveTo(startPt.x, startPt.y);
+                    for (let i = 1; i <= 20; i++) {
+                        const pt = getBezierPoint(c, i / 20);
+                        ctx.lineTo(pt.x, pt.y);
+                    }
+                    ctx.stroke();
+
+                    // Friso interior na calha ou na borracha
+                    ctx.strokeStyle = c.type === 'wall-b' ? '#ff8a80' : '#ffffff';
+                    ctx.lineWidth = 1.5;
+                    ctx.beginPath();
                     ctx.moveTo(startPt.x, startPt.y);
                     for (let i = 1; i <= 20; i++) {
                         const pt = getBezierPoint(c, i / 20);
@@ -3507,7 +3757,7 @@ const runGameSimulation = (isWarping = false) => {
                                         try {
                                             const res = await fetch(`/api/tables/${encodeURIComponent(targetTable)}`);
                                             if (res.ok) {
-                                                components = await res.json();
+                                                applyLoadedTableData(await res.json());
                                                 subLoaded = true;
                                             }
                                         } catch (err) {}
@@ -3515,7 +3765,7 @@ const runGameSimulation = (isWarping = false) => {
                                         if (!subLoaded) {
                                             const stored = localStorage.getItem(`pinball_table_${targetTable}`);
                                             if (stored) {
-                                                components = JSON.parse(stored);
+                                                applyLoadedTableData(JSON.parse(stored));
                                                 subLoaded = true;
                                             }
                                         }
@@ -3617,7 +3867,7 @@ const runGameSimulation = (isWarping = false) => {
             ctx.save();
             ctx.translate(mToPx(pos.x), mToPx(pos.y));
             if (activeTheme === 'retro') {
-                // Bola de aço cromado clássica com reflexo 3D realista sem brilho néon
+                // Bola de a?o cromado cl?ssica com reflexo 3D realista sem brilho n?on
                 ctx.shadowBlur = 0;
                 const grad = ctx.createRadialGradient(-3, -3, 2, 0, 0, 13);
                 grad.addColorStop(0, '#ffffff'); // Reflexo brilhante de luz
@@ -3626,6 +3876,18 @@ const runGameSimulation = (isWarping = false) => {
                 grad.addColorStop(1, '#263238');
                 ctx.fillStyle = grad;
                 ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill();
+            } else if (activeTheme === 'arcade') {
+                // Bola de pinball arcade cromada brilhante com sombra e reflexo especular n?tido
+                ctx.shadowBlur = 0;
+                const grad = ctx.createRadialGradient(-3, -3, 1, 0, 0, 13);
+                grad.addColorStop(0, '#ffffff'); // Ponto especular n?tido
+                grad.addColorStop(0.2, '#f8f9fa');
+                grad.addColorStop(0.55, '#b0bec5');
+                grad.addColorStop(0.85, '#455a64');
+                grad.addColorStop(1, '#1c2833');
+                ctx.fillStyle = grad;
+                ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill();
+                ctx.strokeStyle = '#000000'; ctx.lineWidth = 1; ctx.stroke();
             } else {
                 ctx.fillStyle = '#fff'; ctx.shadowBlur = 10; ctx.shadowColor = '#00ffff';
                 ctx.beginPath(); ctx.arc(0, 0, 13, 0, Math.PI * 2); ctx.fill();
@@ -3900,7 +4162,7 @@ document.getElementById('modal-btn-play')?.addEventListener('click', async () =>
         try {
             const res = await fetch(`/api/tables/${encodeURIComponent(tableName)}`);
             if (res.ok) {
-                components = await res.json();
+                applyLoadedTableData(await res.json());
                 document.getElementById('highscore-modal')?.classList.add('hidden');
                 runGameSimulation();
                 return;
@@ -3909,7 +4171,7 @@ document.getElementById('modal-btn-play')?.addEventListener('click', async () =>
 
         const stored = localStorage.getItem(`pinball_table_${tableName}`);
         if (stored) {
-            components = JSON.parse(stored);
+            applyLoadedTableData(JSON.parse(stored));
         }
         document.getElementById('highscore-modal')?.classList.add('hidden');
         runGameSimulation();
@@ -4017,34 +4279,54 @@ document.getElementById('btn-sound-toggle')?.addEventListener('click', () => {
     showDisplayMessage(isSoundEnabled ? "🔊 SOM ATIVADO" : "🔇 SOM DESATIVADO", "#00ffff", 1000);
 });
 
-const setTheme = (theme: 'neon' | 'retro') => {
+const setTheme = (theme: 'neon' | 'retro' | 'arcade') => {
     activeTheme = theme;
     document.body.classList.toggle('retro-theme', theme === 'retro');
+    document.body.classList.toggle('arcade-theme', theme === 'arcade');
     
     const btn = document.getElementById('btn-theme-toggle');
     if (btn) {
-        btn.innerText = theme === 'neon' ? "🪵 CLÁSSICO" : "💎 NÉON";
+        btn.innerText = theme === 'neon' ? "🪵 CLÁSSICO" : (theme === 'retro' ? "🕹️ ARCADE" : "⚡ NÉON");
     }
     
     // Sincronizar botões do painel do criador (sidebar)
     const btnNeon = document.getElementById('btn-theme-neon');
     const btnClassic = document.getElementById('btn-theme-classic');
-    if (btnNeon && btnClassic) {
-        if (theme === 'neon') {
-            btnNeon.style.background = '#00ffff';
-            btnNeon.style.color = '#110520';
-            btnClassic.style.background = 'transparent';
-            btnClassic.style.color = '#d4af37';
-        } else {
-            btnNeon.style.background = 'transparent';
-            btnNeon.style.color = '#00ffff';
-            btnClassic.style.background = '#d4af37';
-            btnClassic.style.color = '#3e2723';
-        }
+    const btnArcade = document.getElementById('btn-theme-arcade');
+    if (btnNeon) {
+        btnNeon.style.background = theme === 'neon' ? '#00ffff' : 'transparent';
+        btnNeon.style.color = theme === 'neon' ? '#110520' : '#00ffff';
+    }
+    if (btnClassic) {
+        btnClassic.style.background = theme === 'retro' ? '#d4af37' : 'transparent';
+        btnClassic.style.color = theme === 'retro' ? '#3e2723' : '#d4af37';
+    }
+    if (btnArcade) {
+        btnArcade.style.background = theme === 'arcade' ? '#2979ff' : 'transparent';
+        btnArcade.style.color = theme === 'arcade' ? '#ffffff' : '#2979ff';
+    }
+
+    // Sincronizar botões do menu durante o jogo (in-game dropdown)
+    const playNeon = document.getElementById('btn-play-theme-neon');
+    const playClassic = document.getElementById('btn-play-theme-classic');
+    const playArcade = document.getElementById('btn-play-theme-arcade');
+    if (playNeon) {
+        playNeon.style.background = theme === 'neon' ? 'rgba(0,255,255,0.25)' : 'transparent';
+        playNeon.style.borderColor = theme === 'neon' ? '#00ffff' : 'rgba(255,255,255,0.2)';
+    }
+    if (playClassic) {
+        playClassic.style.background = theme === 'retro' ? 'rgba(212,175,55,0.25)' : 'transparent';
+        playClassic.style.borderColor = theme === 'retro' ? '#d4af37' : 'rgba(255,255,255,0.2)';
+    }
+    if (playArcade) {
+        playArcade.style.background = theme === 'arcade' ? 'rgba(41,121,255,0.35)' : 'transparent';
+        playArcade.style.borderColor = theme === 'arcade' ? '#2979ff' : 'rgba(255,255,255,0.2)';
     }
     
     sounds.playFlipper();
-    showDisplayMessage(theme === 'neon' ? "💎 TEMA NÉON ACTIVADO" : "🪵 TEMA CLÁSSICO ACTIVADO", theme === 'neon' ? "#00ffff" : "#d4af37", 1200);
+    const msg = theme === 'neon' ? "⚡ TEMA NÉON ACTIVADO" : (theme === 'retro' ? "🪵 TEMA CLÁSSICO ACTIVADO" : "🕹️ TEMA ARCADE ACTIVADO");
+    const color = theme === 'neon' ? "#00ffff" : (theme === 'retro' ? "#d4af37" : "#2979ff");
+    showDisplayMessage(msg, color, 1200);
     
     // Forçar redesenho imediato do editor ou da simulação ativa
     if (!isPlaying) {
@@ -4053,7 +4335,7 @@ const setTheme = (theme: 'neon' | 'retro') => {
 };
 
 document.getElementById('btn-theme-toggle')?.addEventListener('click', () => {
-    setTheme(activeTheme === 'neon' ? 'retro' : 'neon');
+    setTheme(activeTheme === 'neon' ? 'retro' : (activeTheme === 'retro' ? 'arcade' : 'neon'));
 });
 
 document.getElementById('btn-theme-neon')?.addEventListener('click', () => {
@@ -4062,6 +4344,46 @@ document.getElementById('btn-theme-neon')?.addEventListener('click', () => {
 
 document.getElementById('btn-theme-classic')?.addEventListener('click', () => {
     setTheme('retro');
+});
+
+document.getElementById('btn-theme-arcade')?.addEventListener('click', () => {
+    setTheme('arcade');
+});
+
+document.getElementById('btn-play-theme-neon')?.addEventListener('click', () => {
+    setTheme('neon');
+    document.getElementById('settings-dropdown')?.classList.add('hidden');
+});
+
+document.getElementById('btn-play-theme-classic')?.addEventListener('click', () => {
+    setTheme('retro');
+    document.getElementById('settings-dropdown')?.classList.add('hidden');
+});
+
+document.getElementById('btn-play-theme-arcade')?.addEventListener('click', () => {
+    setTheme('arcade');
+    document.getElementById('settings-dropdown')?.classList.add('hidden');
+});
+
+
+// Color picker e botões de atalho para cor de fundo da mesa (Arcade)
+const arcadeBgPicker = document.getElementById('arcade-bg-picker') as HTMLInputElement;
+if (arcadeBgPicker) {
+    arcadeBgPicker.addEventListener('input', (e: any) => {
+        currentTableBgColor = e.target.value;
+        if (!isPlaying) drawEditor();
+    });
+}
+
+document.querySelectorAll('.btn-preset-color').forEach(btn => {
+    btn.addEventListener('click', (e: any) => {
+        const color = (e.target as HTMLElement).getAttribute('data-color');
+        if (color) {
+            currentTableBgColor = color;
+            if (arcadeBgPicker) arcadeBgPicker.value = color;
+            if (!isPlaying) drawEditor();
+        }
+    });
 });
 
 document.getElementById('btn-nudge')?.addEventListener('click', () => {
@@ -4131,7 +4453,7 @@ document.getElementById('modal-table-select')?.addEventListener('change', async 
     try {
         const res = await fetch(`/api/tables/${encodeURIComponent(val)}`);
         if (res.ok) {
-            components = await res.json();
+            applyLoadedTableData(await res.json());
             drawEditor();
             showHighscoreModal("BEM-VINDO");
             return;
@@ -4141,7 +4463,7 @@ document.getElementById('modal-table-select')?.addEventListener('change', async 
     // Fallback para localStorage se não existir no disco/servidor
     const stored = localStorage.getItem(`pinball_table_${val}`);
     if (stored) {
-        components = JSON.parse(stored);
+        applyLoadedTableData(JSON.parse(stored));
         drawEditor();
         showHighscoreModal("BEM-VINDO");
     }
@@ -4160,18 +4482,18 @@ document.getElementById('btn-save-api')?.addEventListener('click', async () => {
         const res = await fetch('/api/tables', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, components })
+            body: JSON.stringify({ name, components, bgColor: currentTableBgColor })
         });
         if (res.ok) {
             alert(`Mesa "${name}" gravada com sucesso no disco! 💾`);
             loadTableList();
         } else {
             alert("Erro ao gravar no disco. A gravar localmente no browser...");
-            localStorage.setItem(`pinball_table_${name}`, JSON.stringify(components));
+            localStorage.setItem(`pinball_table_${name}`, JSON.stringify([...components, { type: 'table-meta', bgColor: currentTableBgColor }]));
             loadTableList();
         }
     } catch (e) {
-        localStorage.setItem(`pinball_table_${name}`, JSON.stringify(components));
+        localStorage.setItem(`pinball_table_${name}`, JSON.stringify([...components, { type: 'table-meta', bgColor: currentTableBgColor }]));
         loadTableList();
     }
 });
@@ -4186,7 +4508,7 @@ document.getElementById('btn-load-api')?.addEventListener('click', async () => {
         if (res.ok) {
             const data = await res.json();
             // Suporte para o formato da API (array direto ou objeto)
-            components = Array.isArray(data) ? data : (data.components || []);
+            applyLoadedTableData(data);
             drawEditor();
             const nameInput = document.getElementById('table-name-input') as HTMLInputElement;
             if (nameInput) nameInput.value = name;
@@ -4195,7 +4517,7 @@ document.getElementById('btn-load-api')?.addEventListener('click', async () => {
             // Tentar localStorage se falhar a API
             const stored = localStorage.getItem(`pinball_table_${name}`);
             if (stored) {
-                components = JSON.parse(stored);
+                applyLoadedTableData(JSON.parse(stored));
                 drawEditor();
             }
         }
@@ -4262,7 +4584,7 @@ document.getElementById('file-input')?.addEventListener('change', (e: any) => {
         try {
             const imported = JSON.parse(event.target.result);
             // Suporte para diferentes formatos (se for array direto ou objeto com property components)
-            components = Array.isArray(imported) ? imported : (imported.components || []);
+            applyLoadedTableData(imported);
             drawEditor();
             
             const fileName = file.name.split('.')[0];

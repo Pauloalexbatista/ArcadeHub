@@ -36,7 +36,11 @@ app.post('/api/tables', (req, res) => {
     try {
         const data = req.body;
         const name = data.name.replace(/[^a-zA-Z0-9_\- ]/g, '').trim() || 'Sem_Nome';
-        fs.writeFileSync(path.join(tablesDir, `${name}.json`), JSON.stringify(data.components, null, 2));
+        let compsToSave = Array.isArray(data.components) ? data.components.filter(c => c && c.type !== 'table-meta') : [];
+        if (data.bgColor) {
+            compsToSave.push({ type: 'table-meta', bgColor: data.bgColor });
+        }
+        fs.writeFileSync(path.join(tablesDir, `${name}.json`), JSON.stringify(compsToSave, null, 2));
         res.json({ success: true, name });
     } catch (e) {
         res.status(500).json({ error: 'Falha ao gravar tabela' });

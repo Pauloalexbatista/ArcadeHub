@@ -100,6 +100,17 @@
                         <div style="display: flex; gap: 4px;">
                             <button id="btn-theme-neon" class="btn" style="padding: 4px 8px; font-size: 11px; font-weight: bold; border-radius: 4px; border: 1px solid #00ffff; cursor: pointer;">💎 NÉON</button>
                             <button id="btn-theme-classic" class="btn" style="padding: 4px 8px; font-size: 11px; font-weight: bold; border-radius: 4px; border: 1px solid #d4af37; background: transparent; color: #d4af37; cursor: pointer;">🪵 CLÁSSICO</button>
+                            <button id="btn-theme-arcade" class="btn" style="padding: 4px 6px; font-size: 10px; font-weight: bold; border-radius: 4px; border: 1px solid #2979ff; background: transparent; color: #2979ff; cursor: pointer;">🕹️ ARCADE</button>
+                        </div>
+                    </div>
+                    <div id="arcade-color-row" class="dash-row spaced" style="justify-content: space-between; align-items: center; margin-bottom: 4px; padding: 4px 6px; background: rgba(41, 121, 255, 0.08); border: 1px solid rgba(41, 121, 255, 0.25); border-radius: 4px;">
+                        <span style="font-size: 9px; color: #82b1ff; font-weight:800;">FUNDO ARCADE:</span>
+                        <div style="display: flex; align-items: center; gap: 4px;">
+                            <input type="color" id="arcade-bg-picker" value="#0a1c4d" title="Escolha qualquer cor de fundo para a mesa" style="width: 24px; height: 22px; padding: 0; border: 1px solid #2979ff; border-radius: 3px; cursor: pointer; background: transparent;">
+                            <button type="button" class="btn-preset-color" data-color="#3c096c" title="Roxo Tehkan (Mesa Mãe)" style="width: 16px; height: 16px; border-radius: 50%; background: #3c096c; border: 1px solid #fff; cursor: pointer; padding: 0;"></button>
+                            <button type="button" class="btn-preset-color" data-color="#1b4332" title="Verde Bowling" style="width: 16px; height: 16px; border-radius: 50%; background: #1b4332; border: 1px solid #fff; cursor: pointer; padding: 0;"></button>
+                            <button type="button" class="btn-preset-color" data-color="#5c0d11" title="Vermelho Slot/Phoenix" style="width: 16px; height: 16px; border-radius: 50%; background: #5c0d11; border: 1px solid #fff; cursor: pointer; padding: 0;"></button>
+                            <button type="button" class="btn-preset-color" data-color="#0a1c4d" title="Azul Poker (Padrão)" style="width: 16px; height: 16px; border-radius: 50%; background: #0a1c4d; border: 1px solid #fff; cursor: pointer; padding: 0;"></button>
                         </div>
                     </div>
                     <div class="dash-row" style="flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 2px;">
@@ -324,7 +335,13 @@
                             <button id="btn-sound-toggle" class="dropdown-btn">🔊 SOM</button>
                             <button id="btn-nudge" class="dropdown-btn">📳 ABANAR</button>
                             <button id="btn-fullscreen" class="dropdown-btn">📱 ECRÃ</button>
-                            <button id="btn-theme-toggle" class="dropdown-btn">🪵 CLÁSSICO</button>
+                            <div style="padding: 5px 8px 2px; font-size: 9px; color: #82b1ff; font-weight: 900; letter-spacing: 0.5px; border-top: 1px solid rgba(255,255,255,0.12); margin-top: 3px;">TEMA DA MESA:</div>
+                            <div style="display: flex; gap: 4px; padding: 2px 6px 6px;">
+                                <button id="btn-play-theme-neon" class="dropdown-btn" style="flex: 1; padding: 6px 2px; font-size: 10px; font-weight: bold; text-align: center; border-radius: 4px; margin: 0;">⚡ NÉON</button>
+                                <button id="btn-play-theme-classic" class="dropdown-btn" style="flex: 1; padding: 6px 2px; font-size: 10px; font-weight: bold; text-align: center; border-radius: 4px; margin: 0;">🪵 CLÁSSICO</button>
+                                <button id="btn-play-theme-arcade" class="dropdown-btn" style="flex: 1; padding: 6px 2px; font-size: 10px; font-weight: bold; text-align: center; border-radius: 4px; border: 1px solid #2979ff; color: #82b1ff; margin: 0;">🕹️ ARCADE</button>
+                            </div>
+                            <button id="btn-theme-toggle" class="dropdown-btn" style="display:none;"></button>
                             <button id="btn-goto-workshop" class="dropdown-btn">🛠️ OFICINA</button>
                             <button id="btn-reset-ball" class="dropdown-btn">🚪 SAIR</button>
                         </div>
