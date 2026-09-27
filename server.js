@@ -11,6 +11,15 @@ const PORT = process.env.PORT || 3000;
 
 app.use(express.json({ limit: '10mb' }));
 
+// Habilitar CORS para permitir chamadas entre subdomínios (ex: galinhas.testeweb.site)
+app.use((req, res, next) => {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header("Access-Control-Allow-Methods", "GET, POST, OPTIONS");
+    if (req.method === "OPTIONS") return res.sendStatus(200);
+    next();
+});
+
 // Servir ficheiros estáticos da build do Vite (Front-end)
 app.use(express.static(path.join(__dirname, 'dist')));
 
@@ -109,6 +118,68 @@ app.get('/api/shares/:id', (req, res) => {
         }
     } catch (e) {
         res.status(500).json({ error: 'Erro ao descompactar atalho' });
+    }
+});
+
+// --- HIGH SCORES GLOBAIS: A REVOLTA DAS GALINHAS ---
+const galinhasScoresFile = path.resolve(__dirname, 'galinhas_scores.json');
+const DEFAULT_GALINHAS_SCORES = [
+    { name: "AGRICULT", score: 10000 },
+    { name: "BOBI", score: 8000 },
+    { name: "PIU_PIU", score: 6000 },
+    { name: "GALINHA", score: 4000 },
+    { name: "OVO_OURO", score: 3000 },
+    { name: "PINTA", score: 2500 },
+    { name: "CELEIRO", score: 2000 }
+];
+
+function getGalinhasScores() {
+    try {
+        if (fs.existsSync(galinhasScoresFile)) {
+            const raw = fs.readFileSync(galinhasScoresFile, 'utf-8');
+            const data = JSON.parse(raw);
+            if (Array.isArray(data) && data.length > 0) return data;
+        }
+    } catch (e) {
+        console.error("Erro ao ler galinhas_scores.json:", e);
+    }
+    return DEFAULT_GALINHAS_SCORES;
+}
+
+function saveGalinhasScores(scores) {
+    try {
+        fs.writeFileSync(galinhasScoresFile, JSON.stringify(scores.slice(0, 10), null, 2), 'utf-8');
+    } catch (e) {
+        console.error("Erro ao gravar galinhas_scores.json:", e);
+    }
+}
+
+// API: Obter Top Scores Globais
+app.get('/api/galinhas/scores', (req, res) => {
+    res.json(getGalinhasScores());
+});
+
+// API: Registar Novo Score Global
+app.post('/api/galinhas/scores', (req, res) => {
+    try {
+        const { name, score } = req.body;
+        const validScore = parseInt(score, 10);
+        if (isNaN(validScore) || validScore < 0 || validScore > 10000000) {
+            return res.status(400).json({ error: 'Pontuação inválida' });
+        }
+        const cleanName = String(name || 'PINTAINHO')
+            .replace(/[^a-zA-Z0-9_\-]/g, '')
+            .toUpperCase()
+            .slice(0, 8) || 'PINTAINHO';
+
+        let list = getGalinhasScores();
+        list.push({ name: cleanName, score: validScore });
+        list.sort((a, b) => b.score - a.score);
+        list = list.slice(0, 10);
+        saveGalinhasScores(list);
+        res.json({ success: true, scores: list });
+    } catch (e) {
+        res.status(500).json({ error: 'Erro ao processar recorde' });
     }
 });
 
