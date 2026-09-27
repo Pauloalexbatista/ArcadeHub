@@ -4832,6 +4832,11 @@ const initArcadeHubNavigation = () => {
         }, 1500);
     });
     
+    document.getElementById('hub-btn-scroll-top')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        hubScreen?.scrollTo({ top: 0, behavior: 'smooth' });
+    });
+
     document.getElementById('hub-logout-btn')?.addEventListener('click', () => {
         localStorage.removeItem('arcade_hub_token');
         location.reload();
