@@ -4796,6 +4796,16 @@ const initArcadeHubNavigation = () => {
     });
     
     
+      document.getElementById('hub-btn-play-galinhas')?.addEventListener('click', () => {
+          showDisplayMessage("🐔 A ENTRAR NO CELEIRO...", "#ffd600", 2500);
+          sounds.playScoreMilestone();
+          setTimeout(() => {
+              window.location.href = window.location.origin.includes('localhost')
+                  ? 'https://galinhas.testeweb.site'
+                  : 'https://galinhas.testeweb.site';
+          }, 1200);
+      });
+
       document.getElementById('hub-btn-play-striker')?.addEventListener('click', () => {
           showDisplayMessage("⚽ A INICIAR STRIKER...", "#ffd700", 2500);
           sounds.playScoreMilestone();

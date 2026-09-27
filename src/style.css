@@ -936,6 +936,12 @@ body.retro-theme .ball-indicator-text {
 .right-side .split-logo { color: #fff; text-shadow: 0 0 15px #ff0055; }
 .right-side .split-logo span { color: #ff0055; text-shadow: 0 0 15px #ff0055; }
 
+.font-arcade {
+    font-family: 'Press Start 2P', monospace, sans-serif;
+    font-size: 1.15rem;
+    line-height: 1.5;
+}
+
 .font-racing {
     font-family: 'Orbitron', sans-serif;
     font-weight: 900;
@@ -1357,27 +1363,72 @@ body.arcade-theme .ball-indicator-icon {
     box-shadow: 0 0 10px rgba(0, 209, 102, 0.2);
 }
 
+/* Cartão A Revolta das Galinhas */
+.chicken-side {
+    background: radial-gradient(circle at center, #2e1a05 0%, #080400 100%);
+    border-left: 1px solid rgba(255, 235, 59, 0.15);
+}
+.chicken-side:hover .split-bg {
+    transform: scale(1.15);
+    opacity: 0.22;
+}
+.chicken-side .split-logo {
+    color: #fff;
+    text-shadow: 0 0 15px #ffd600;
+}
+.chicken-side .split-logo span {
+    color: #ff5252;
+    text-shadow: 0 0 15px #ff1744;
+}
+.chicken-side:hover .split-desc {
+    color: #fff;
+}
+.chicken-side .hub-btn {
+    border: 2px solid #ffd600;
+    box-shadow: 0 0 8px rgba(255, 214, 0, 0.3);
+}
+.chicken-side .hub-btn:hover {
+    background: #ffd600;
+    color: #000;
+    box-shadow: 0 0 20px #ffd600;
+}
+.chicken-badge {
+    background: rgba(255, 214, 0, 0.15) !important;
+    border: 1px solid rgba(255, 214, 0, 0.5) !important;
+    color: #ffd600 !important;
+    box-shadow: 0 0 10px rgba(255, 214, 0, 0.25) !important;
+}
+
 .divider-1 {
-    left: 33.33%;
+    left: 25%;
 }
 .divider-2 {
-    left: 66.66%;
+    left: 50%;
+}
+.divider-3 {
+    left: 75%;
 }
 
 @media (max-width: 768px) {
     .split-side {
         width: 100% !important;
-        height: 33.33% !important;
+        height: 25% !important;
     }
     .divider-1 {
         left: 10% !important;
-        top: 33.33% !important;
+        top: 25% !important;
         width: 80% !important;
         height: 2px !important;
     }
     .divider-2 {
         left: 10% !important;
-        top: 66.66% !important;
+        top: 50% !important;
+        width: 80% !important;
+        height: 2px !important;
+    }
+    .divider-3 {
+        left: 10% !important;
+        top: 75% !important;
         width: 80% !important;
         height: 2px !important;
     }
