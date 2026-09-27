@@ -173,10 +173,13 @@ app.post('/api/galinhas/scores', (req, res) => {
             .slice(0, 8) || 'PINTAINHO';
 
         let list = getGalinhasScores();
-        list.push({ name: cleanName, score: validScore });
-        list.sort((a, b) => b.score - a.score);
-        list = list.slice(0, 10);
-        saveGalinhasScores(list);
+        const alreadyExists = list.some(s => s.name === cleanName && s.score === validScore);
+        if (!alreadyExists) {
+            list.push({ name: cleanName, score: validScore });
+            list.sort((a, b) => b.score - a.score);
+            list = list.slice(0, 10);
+            saveGalinhasScores(list);
+        }
         res.json({ success: true, scores: list });
     } catch (e) {
         res.status(500).json({ error: 'Erro ao processar recorde' });
