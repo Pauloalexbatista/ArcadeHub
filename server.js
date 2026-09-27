@@ -122,7 +122,7 @@ app.get('/api/shares/:id', (req, res) => {
 });
 
 // --- HIGH SCORES GLOBAIS: A REVOLTA DAS GALINHAS ---
-const galinhasScoresFile = path.resolve(__dirname, 'galinhas_scores.json');
+const galinhasScoresFile = path.resolve(__dirname, 'Shared_Scores', 'galinhas_scores.json');
 const DEFAULT_GALINHAS_SCORES = [
     { name: "AGRICULT", score: 10000 },
     { name: "BOBI", score: 8000 },
