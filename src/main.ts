@@ -4192,7 +4192,7 @@ document.getElementById('modal-btn-hub')?.addEventListener('click', () => {
 // Inicialização
 window.addEventListener('load', () => {
     updateHighscoreTableList();
-    showHighscoreModal("BEM-VINDO");
+    // Não abrir o modal de pinball no arranque para que o utilizador veja o ArcadeHub limpo!
 });
 
 const stopSimulation = () => {
