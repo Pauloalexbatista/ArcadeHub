@@ -1375,8 +1375,7 @@ body.arcade-theme .ball-indicator-icon {
 }
 
 @media (max-width: 768px) {
-    #hub-screen {
-        display: flex !important;
+    #hub-screen { display: flex;
         flex-direction: column !important;
         position: fixed !important;
         top: 0 !important;
@@ -1634,8 +1633,7 @@ body.arcade-theme .ball-indicator-icon {
 /* ========================================================
    PORTALHUB - NOVO DESIGN EM CARTÕES (5 JOGOS RESPONSIVOS)
    ======================================================== */
-#hub-screen {
-    display: flex !important;
+#hub-screen { display: flex;
     flex-direction: column !important;
     align-items: center !important;
     justify-content: flex-start !important;
@@ -2115,5 +2113,11 @@ body.arcade-theme .ball-indicator-icon {
         padding: 8px 14px;
         font-size: 10px;
     }
+}
+
+
+
+#hub-screen.hidden {
+    display: none !important;
 }
 
