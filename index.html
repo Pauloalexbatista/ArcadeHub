@@ -29,61 +29,93 @@
         </div>
     </div>
 
-    <!-- 2. Ecrã Split-Screen (Seletor de Jogos) -->
+        <!-- 2. Ecrã Seletor de Jogos (PortalHUB Cards) -->
     <div id="hub-screen" class="portal-screen hidden">
-        <div class="split-side left-side">
-            <div class="split-bg" style="background-image: radial-gradient(rgba(0, 255, 255, 0.15) 2px, transparent 2px); background-size: 24px 24px;"></div>
-            <div class="split-content">
-                <div class="split-logo">OFICINA<span>PINBALL</span></div>
-                <p class="split-desc">Desenha e joga nas tuas próprias mesas néon com física Planck.</p>
-                <div class="split-actions">
-                    <button id="hub-btn-play-pinball" class="hub-btn">🚀 JOGAR PINBALL</button>
-                    <button id="hub-btn-open-workshop" class="hub-btn">🛠️ OFICINA / EDITOR</button>
-                </div>
+        <!-- Top Navigation / Header -->
+        <header class="hub-header">
+            <div class="hub-brand">
+                <span class="hub-brand-logo">ARCADE<span>HUB</span></span>
+                <span class="hub-brand-badge">⚡ 5 JOGOS DISPONÍVEIS</span>
             </div>
-        </div>
-        
-        <div class="split-side center-side" id="hub-btn-play-f1">
-            <div class="split-bg" style="background-image: radial-gradient(rgba(255, 0, 85, 0.15) 2px, transparent 2px); background-size: 24px 24px;"></div>
-            <div class="split-content">
-                <div class="split-logo font-racing">MINI F1<span>RACING</span></div>
-                <p class="split-desc">Acelera no asfalto com velocidade máxima, curvas apertadas e som realista.</p>
-                <div class="pc-only-badge">💻 REQUISITO: COMPUTADOR (TECLADO)</div>
-                <div class="split-actions">
-                    <button class="hub-btn">🏎️ ENTRAR NA CORRIDA</button>
-                </div>
-            </div>
-        </div>
+            <p class="hub-subtitle">SELECIONA O TEU DESAFIO E ENTRA NA ARENA</p>
+        </header>
 
-        <div class="split-side striker-side" id="hub-btn-play-striker">
-            <div class="split-bg" style="background-image: radial-gradient(rgba(255, 215, 0, 0.15) 2px, transparent 2px); background-size: 24px 24px;"></div>
-            <div class="split-content">
-                <div class="split-logo font-striker">STRIKER<span>PRO</span></div>
-                <p class="split-desc">Prognósticos de futebol ao vivo. Divide o pote dos jogos e domina o ranking.</p>
-                <div class="mobile-pwa-badge">📱 TELEMÓVEL OU PC (PWA)</div>
-                <div class="split-actions">
-                    <button class="hub-btn">⚽ ENTRAR NO JOGO</button>
+        <!-- Grid de Cartões Modernos -->
+        <main class="hub-cards-container">
+            <div class="hub-cards-grid">
+                
+                <!-- 1. OFICINA PINBALL -->
+                <div class="hub-game-card card-pinball" id="hub-card-pinball">
+                    <div class="card-bg" style="background-image: radial-gradient(rgba(0, 255, 255, 0.18) 2px, transparent 2px); background-size: 24px 24px;"></div>
+                    <div class="card-top">
+                        <span class="card-badge badge-cyan">💎 SIMULADOR & OFICINA</span>
+                        <div class="card-logo font-pinball">OFICINA<span>PINBALL</span></div>
+                        <p class="card-desc">Desenha e joga nas tuas próprias mesas néon com física Planck realista.</p>
+                    </div>
+                    <div class="card-actions">
+                        <button id="hub-btn-play-pinball" class="hub-btn btn-cyan">🚀 JOGAR PINBALL</button>
+                        <button id="hub-btn-open-workshop" class="hub-btn btn-cyan-outline">🛠️ OFICINA / EDITOR</button>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="split-side chicken-side" id="hub-btn-play-galinhas">
-            <div class="split-bg" style="background-image: radial-gradient(rgba(255, 214, 0, 0.15) 2px, transparent 2px); background-size: 24px 24px;"></div>
-            <div class="split-content">
-                <div class="split-logo font-arcade">A REVOLTA<span> DAS GALINHAS</span></div>
-                <p class="split-desc">Ajuda o Piu a resgatar os ovos e o milho antes que os agricultores te apanhem!</p>
-                <div class="mobile-pwa-badge chicken-badge">🐔 ARCADE RETRO 1984</div>
-                <div class="split-actions">
-                    <button class="hub-btn">🐔 ENTRAR NO CELEIRO</button>
+                <!-- 2. MINI F1 RACING -->
+                <div class="hub-game-card card-f1" id="hub-card-f1">
+                    <div class="card-bg" style="background-image: radial-gradient(rgba(255, 0, 85, 0.18) 2px, transparent 2px); background-size: 24px 24px;"></div>
+                    <div class="card-top">
+                        <span class="card-badge badge-f1">💻 REQUISITO: COMPUTADOR (TECLADO)</span>
+                        <div class="card-logo font-racing">MINI F1<span>RACING</span></div>
+                        <p class="card-desc">Acelera no asfalto com velocidade máxima, curvas apertadas e som realista.</p>
+                    </div>
+                    <div class="card-actions">
+                        <button id="hub-btn-play-f1" class="hub-btn btn-f1">🏎️ ENTRAR NA CORRIDA</button>
+                    </div>
                 </div>
-            </div>
-        </div>
 
-        <div class="split-divider divider-1"></div>
-        <div class="split-divider divider-2"></div>
-        <div class="split-divider divider-3"></div>
+                <!-- 3. STRIKER PRO -->
+                <div class="hub-game-card card-striker" id="hub-card-striker">
+                    <div class="card-bg" style="background-image: radial-gradient(rgba(255, 215, 0, 0.18) 2px, transparent 2px); background-size: 24px 24px;"></div>
+                    <div class="card-top">
+                        <span class="card-badge badge-striker">📱 TELEMÓVEL OU PC (PWA)</span>
+                        <div class="card-logo font-striker">STRIKER<span>PRO</span></div>
+                        <p class="card-desc">Prognósticos de futebol ao vivo. Divide o pote dos jogos e domina o ranking.</p>
+                    </div>
+                    <div class="card-actions">
+                        <button id="hub-btn-play-striker" class="hub-btn btn-striker">⚽ ENTRAR NO JOGO</button>
+                    </div>
+                </div>
+
+                <!-- 4. A REVOLTA DAS GALINHAS -->
+                <div class="hub-game-card card-galinhas" id="hub-card-galinhas">
+                    <div class="card-bg" style="background-image: radial-gradient(rgba(255, 214, 0, 0.18) 2px, transparent 2px); background-size: 24px 24px;"></div>
+                    <div class="card-top">
+                        <span class="card-badge badge-galinhas">🕹️ ARCADE RETRO 1984</span>
+                        <div class="card-logo font-arcade">A REVOLTA<span> DAS GALINHAS</span></div>
+                        <p class="card-desc">Ajuda o Piu a resgatar os ovos e o milho antes que os agricultores te apanhem!</p>
+                    </div>
+                    <div class="card-actions">
+                        <button id="hub-btn-play-galinhas" class="hub-btn btn-galinhas">🐔 ENTRAR NO CELEIRO</button>
+                    </div>
+                </div>
+
+                <!-- 5. TIKI-TAKA SIMULADOR -->
+                <div class="hub-game-card card-tikitaka" id="hub-card-tikitaka">
+                    <div class="card-bg" style="background-image: radial-gradient(rgba(0, 255, 136, 0.18) 2px, transparent 2px); background-size: 24px 24px;"></div>
+                    <div class="card-top">
+                        <span class="card-badge badge-tikitaka">🏆 GESTÃO & TÁCTICA (PWA)</span>
+                        <div class="card-logo font-tikitaka">TIKI<span>TAKA</span></div>
+                        <p class="card-desc">Gere o teu clube, domina o mercado de transferências e disputa campeonatos com amigos.</p>
+                    </div>
+                    <div class="card-actions">
+                        <button id="hub-btn-play-tikitaka" class="hub-btn btn-tikitaka">⚽ ENTRAR NO SIMULADOR</button>
+                    </div>
+                </div>
+
+            </div>
+        </main>
+
+        <!-- Floating Controls -->
         <button id="hub-btn-scroll-top" class="hub-scroll-top-btn" title="Voltar ao Topo">&#9650; TOPO</button>
-        <button id="hub-btn-logout" class="hub-logout-btn" title="Bloquear Portal">🔒 SAIR</button>
+        <button id="hub-logout-btn" class="hub-logout-btn" title="Bloquear Portal">🔒 SAIR</button>
     </div>
 
     <div id="app" class="hidden">

@@ -4832,6 +4832,42 @@ const initArcadeHubNavigation = () => {
         }, 1500);
     });
     
+    
+    document.getElementById('hub-btn-play-tikitaka')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDisplayMessage("⚽ A INICIAR TIKI-TAKA SIMULADOR...", "#00ff88", 2500);
+        sounds.playScoreMilestone();
+        setTimeout(() => {
+            window.location.href = window.location.origin.includes('localhost')
+                ? 'http://localhost:3000'
+                : 'https://tikitaka.testeweb.site';
+        }, 1200);
+    });
+
+    document.getElementById('hub-card-tikitaka')?.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).tagName !== 'BUTTON') {
+            document.getElementById('hub-btn-play-tikitaka')?.click();
+        }
+    });
+
+    document.getElementById('hub-card-striker')?.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).tagName !== 'BUTTON') {
+            document.getElementById('hub-btn-play-striker')?.click();
+        }
+    });
+
+    document.getElementById('hub-card-galinhas')?.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).tagName !== 'BUTTON') {
+            document.getElementById('hub-btn-play-galinhas')?.click();
+        }
+    });
+
+    document.getElementById('hub-card-f1')?.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).tagName !== 'BUTTON') {
+            document.getElementById('hub-btn-play-f1')?.click();
+        }
+    });
+
     document.getElementById('hub-btn-scroll-top')?.addEventListener('click', (e) => {
         e.stopPropagation();
         hubScreen?.scrollTo({ top: 0, behavior: 'smooth' });
