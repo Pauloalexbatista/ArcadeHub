@@ -2121,3 +2121,38 @@ body.arcade-theme .ball-indicator-icon {
     display: none !important;
 }
 
+
+/* --- MENTES BRILHANTES THEME --- */
+.badge-mentes {
+    color: #c084fc;
+    border-color: rgba(192, 132, 252, 0.4);
+    background: rgba(192, 132, 252, 0.08);
+    text-shadow: 0 0 8px rgba(192, 132, 252, 0.5);
+}
+
+.font-mentes {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    color: #fff;
+    text-shadow: 0 0 15px rgba(192, 132, 252, 0.5);
+}
+.font-mentes span { color: #c084fc; text-shadow: 0 0 18px #c084fc; }
+
+.card-mentes {
+    border-color: rgba(192, 132, 252, 0.35);
+    box-shadow: 0 10px 30px rgba(192, 132, 252, 0.12);
+}
+.card-mentes:hover {
+    transform: translateY(-8px);
+    border-color: #c084fc;
+    box-shadow: 0 18px 45px rgba(192, 132, 252, 0.28);
+}
+
+.btn-mentes {
+    background: linear-gradient(135deg, #c084fc 0%, #9333ea 100%);
+    color: #fff;
+    box-shadow: 0 4px 15px rgba(192, 132, 252, 0.4);
+}
+.btn-mentes:hover {
+    box-shadow: 0 6px 20px rgba(192, 132, 252, 0.6);
+}

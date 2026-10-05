@@ -4867,6 +4867,24 @@ const initArcadeHubNavigation = () => {
         }
     });
 
+    
+    document.getElementById('hub-btn-play-mentes')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDisplayMessage("🧠 A INICIAR MENTES BRILHANTES...", "#c084fc", 2500);
+        sounds.playScoreMilestone();
+        setTimeout(() => {
+            window.location.href = window.location.origin.includes('localhost')
+                ? 'http://localhost:3085'
+                : 'https://mentesbrilhantes.testeweb.site';
+        }, 1200);
+    });
+
+    document.getElementById('hub-card-mentes')?.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).tagName !== 'BUTTON') {
+            document.getElementById('hub-btn-play-mentes')?.click();
+        }
+    });
+
     document.getElementById('hub-btn-scroll-top')?.addEventListener('click', (e) => {
         e.stopPropagation();
         hubScreen?.scrollTo({ top: 0, behavior: 'smooth' });
