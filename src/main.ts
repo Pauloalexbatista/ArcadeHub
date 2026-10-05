@@ -4766,33 +4766,32 @@ const initArcadeHubNavigation = () => {
     const hubScreen = document.getElementById('hub-screen');
     const appEl = document.getElementById('app');
     
-    document.getElementById('hub-btn-play-pinball')?.addEventListener('click', () => {
-        hubScreen?.classList.add('hidden');
-        appEl?.classList.remove('hidden');
-        
-        if (matrixInterval) {
-            clearInterval(matrixInterval);
-            matrixInterval = null;
-        }
-        
+    document.getElementById('hub-btn-play-pinball')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDisplayMessage("🚀 A INICIAR OFICINA PINBALL...", "#00ffff", 2500);
         sounds.playScoreMilestone();
-        // Mostrar o menu de boas-vindas para selecionar a mesa e ver recordes!
-        showHighscoreModal("BEM-VINDO");
-        document.getElementById('sidebar')?.classList.add('hidden-mobile');
+        setTimeout(() => {
+            window.location.href = window.location.origin.includes('localhost')
+                ? 'http://localhost:5173'
+                : 'https://pinball.testeweb.site';
+        }, 1200);
     });
     
-    document.getElementById('hub-btn-open-workshop')?.addEventListener('click', () => {
-        hubScreen?.classList.add('hidden');
-        appEl?.classList.remove('hidden');
-        
-        if (matrixInterval) {
-            clearInterval(matrixInterval);
-            matrixInterval = null;
-        }
-        
+    document.getElementById('hub-btn-open-workshop')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDisplayMessage("🛠️ A ABRIR OFICINA / EDITOR...", "#00ffff", 2500);
         sounds.playTarget();
-        document.getElementById('sidebar')?.classList.remove('hidden-mobile');
-        switchTab('workshop');
+        setTimeout(() => {
+            window.location.href = window.location.origin.includes('localhost')
+                ? 'http://localhost:5173/?mode=workshop'
+                : 'https://pinball.testeweb.site/?mode=workshop';
+        }, 1200);
+    });
+
+    document.getElementById('hub-card-pinball')?.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).tagName !== 'BUTTON') {
+            document.getElementById('hub-btn-play-pinball')?.click();
+        }
     });
     
     
