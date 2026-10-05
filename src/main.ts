@@ -4663,8 +4663,11 @@ document.getElementById('gravity-slider')?.addEventListener('input', (e) => {
 // MATRIX DIGITAL RAIN & PASSWORD SYSTEM
 let matrixInterval: any = null;
 
-const initMatrixRain = () => {
-    const canvas = document.getElementById('matrix-canvas') as HTMLCanvasElement;
+let hubMatrixInterval: any = null;
+
+// transparent = true -> desenha sobre fundo transparente (usado no menu de cartões)
+const initMatrixRain = (canvasId = 'matrix-canvas', transparent = false) => {
+    const canvas = document.getElementById(canvasId) as HTMLCanvasElement;
     if (!canvas) return null;
     const ctx = canvas.getContext('2d')!;
     
@@ -4688,8 +4691,16 @@ const initMatrixRain = () => {
     }
     
     const draw = () => {
-        ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
-        ctx.fillRect(0, 0, width, height);
+        if (transparent) {
+            // Esbater rasto mantendo o canvas transparente (deixa ver o gradiente do Hub)
+            ctx.globalCompositeOperation = 'destination-out';
+            ctx.fillStyle = "rgba(0, 0, 0, 0.06)";
+            ctx.fillRect(0, 0, width, height);
+            ctx.globalCompositeOperation = 'source-over';
+        } else {
+            ctx.fillStyle = "rgba(0, 0, 0, 0.05)";
+            ctx.fillRect(0, 0, width, height);
+        }
         
         ctx.fillStyle = "#0f0";
         ctx.font = fontSize + "px monospace";
@@ -4708,8 +4719,9 @@ const initMatrixRain = () => {
         }
     };
     
-    matrixInterval = setInterval(draw, 33);
-    return matrixInterval;
+    const interval = setInterval(draw, 33);
+    if (canvasId === 'matrix-canvas') matrixInterval = interval;
+    return interval;
 };
 
 const PASSWORD_SECRET = "PINBALL2026";
@@ -4729,6 +4741,10 @@ const initPasswordGate = () => {
         if (matrixInterval) {
             clearInterval(matrixInterval);
             matrixInterval = null;
+        }
+        // Manter o efeito Matrix no menu de seleção de jogos
+        if (!hubMatrixInterval) {
+            hubMatrixInterval = initMatrixRain('hub-matrix-canvas', true);
         }
     };
     

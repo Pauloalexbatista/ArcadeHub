@@ -31,6 +31,7 @@
 
         <!-- 2. Ecrã Seletor de Jogos (PortalHUB Cards) -->
     <div id="hub-screen" class="portal-screen hidden">
+        <canvas id="hub-matrix-canvas"></canvas>
         <!-- Top Navigation / Header -->
         <header class="hub-header">
             <div class="hub-brand">
@@ -108,6 +109,8 @@
                     <div class="card-actions">
                         <button id="hub-btn-play-tikitaka" class="hub-btn btn-tikitaka">⚽ ENTRAR NO SIMULADOR</button>
                     </div>
+                </div>
+
                 <!-- 6. MENTES BRILHANTES -->
                 <div class="hub-game-card card-mentes" id="hub-card-mentes">
                     <div class="card-bg" style="background-image: radial-gradient(rgba(192, 132, 252, 0.18) 2px, transparent 2px); background-size: 24px 24px;"></div>
@@ -119,7 +122,6 @@
                     <div class="card-actions">
                         <button id="hub-btn-play-mentes" class="hub-btn btn-mentes">🎮 ENTRAR NO QUIZ</button>
                     </div>
-                </div>
                 </div>
 
             </div>

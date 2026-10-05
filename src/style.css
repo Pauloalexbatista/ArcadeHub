@@ -2156,3 +2156,21 @@ body.arcade-theme .ball-indicator-icon {
 .btn-mentes:hover {
     box-shadow: 0 6px 20px rgba(192, 132, 252, 0.6);
 }
+
+
+/* --- MATRIX RAIN NO MENU DE CARTÕES --- */
+#hub-matrix-canvas {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 0;
+    opacity: 0.28;
+    pointer-events: none;
+}
+#hub-screen .hub-header,
+#hub-screen .hub-cards-container {
+    position: relative;
+    z-index: 1;
+}
