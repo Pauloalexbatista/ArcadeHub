@@ -2277,3 +2277,12 @@ body.arcade-theme .ball-indicator-icon {
     cursor: not-allowed;
 }
 .btn-soon:hover { transform: none; filter: none; }
+
+/* --- NOMES DOS JOGOS: nunca partir a meio da palavra; se não couber, quebra entre as duas partes --- */
+.card-logo {
+    overflow-wrap: normal !important;
+    word-break: keep-all;
+}
+.card-logo span {
+    display: inline-block;
+}
