@@ -4891,7 +4891,7 @@ const initArcadeHubNavigation = () => {
         setTimeout(() => {
             window.location.href = window.location.origin.includes('localhost')
                 ? 'http://localhost:3085'
-                : 'https://mentesbrilhantes.testeweb.site';
+                : 'https://mentes.testeweb.site';
         }, 1200);
     });
 
