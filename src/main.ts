@@ -4831,15 +4831,7 @@ const initArcadeHubNavigation = () => {
           }, 1200);
       });
       document.getElementById('hub-btn-play-f1')?.addEventListener('click', (e) => {
-        // Detetar se o ecrã é de telemóvel para bloquear o acesso ao F1
-        if (window.innerWidth <= 768) {
-            e.preventDefault();
-            e.stopPropagation();
-            sounds.playBumper();
-            showDisplayMessage("🏎️ JOGO EXIGE TECLADO E ECRÃ LARGO DE PC! 💻", "#ff0055", 3500);
-            return;
-        }
-        
+        e.stopPropagation();
         showDisplayMessage("🏎️ A INICIAR MINI F1 RACING...", "#ff0055", 3000);
         sounds.playScoreMilestone();
         setTimeout(() => {
