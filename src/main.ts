@@ -4893,6 +4893,24 @@ const initArcadeHubNavigation = () => {
         }
     });
 
+    document.getElementById('hub-btn-play-wakemeup')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDisplayMessage("⏰ A INICIAR WAKEMEUP!...", "#38bdf8", 2500);
+        sounds.playScoreMilestone();
+        setTimeout(() => {
+            window.location.href = window.location.origin.includes('localhost')
+                ? 'http://localhost:8080'
+                : 'https://wakemeup.testeweb.site';
+        }, 1200);
+    });
+
+    document.getElementById('hub-card-wakemeup')?.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).tagName !== 'BUTTON') {
+            document.getElementById('hub-btn-play-wakemeup')?.click();
+        }
+    });
+
+
     document.getElementById('hub-btn-scroll-top')?.addEventListener('click', (e) => {
         e.stopPropagation();
         hubScreen?.scrollTo({ top: 0, behavior: 'smooth' });
