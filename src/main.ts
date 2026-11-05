@@ -4910,6 +4910,23 @@ const initArcadeHubNavigation = () => {
         }
     });
 
+    document.getElementById('hub-btn-play-frog')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDisplayMessage("🐸 A SALTAR PARA O PÂNTANO...", "#39ff14", 2500);
+        sounds.playScoreMilestone();
+        setTimeout(() => {
+            window.location.href = window.location.origin.includes('localhost')
+                ? 'http://localhost:8085'
+                : 'https://frog.testeweb.site';
+        }, 1200);
+    });
+
+    document.getElementById('hub-card-frog')?.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).tagName !== 'BUTTON') {
+            document.getElementById('hub-btn-play-frog')?.click();
+        }
+    });
+
 
     document.getElementById('hub-btn-scroll-top')?.addEventListener('click', (e) => {
         e.stopPropagation();
