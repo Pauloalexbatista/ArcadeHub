@@ -1,4 +1,4 @@
-:root {
+﻿:root {
     --bg-dark: #0a0515;
     --sidebar-bg: #110520;
     --accent: #00ffff;
@@ -2332,7 +2332,7 @@ body.arcade-theme .ball-indicator-icon {
     font-size: 10px;
     border-radius: 10px;
 }
-.card-mentes, .card-wakemeup, .card-frog, .card-naval { min-height: 300px; }
+.card-mentes, .card-wakemeup, .card-frog, .card-naval, .card-galactica { min-height: 300px; }
 
 @media (max-width: 1300px) {
     .hub-cards-grid { grid-template-columns: repeat(3, minmax(0, 1fr)); max-width: 900px; margin: 0 auto; }
@@ -2396,4 +2396,40 @@ body.arcade-theme .ball-indicator-icon {
 }
 .card-logo span {
     display: inline-block;
+}
+/* --- 10. GALACTICA: VIPER STRIKE --- */
+.badge-galactica {
+    background: rgba(0, 210, 255, 0.15);
+    color: #00d2ff;
+    border: 1px solid rgba(0, 210, 255, 0.45);
+}
+.font-galactica {
+    font-family: 'Orbitron', sans-serif;
+    font-weight: 900;
+    color: #f0f8ff;
+    letter-spacing: 2px;
+}
+.font-galactica span {
+    color: #ffaa00;
+    text-shadow: 0 0 16px rgba(255, 170, 0, 0.8);
+    display: block;
+    font-family: 'Press Start 2P', monospace;
+    font-size: 11px;
+    letter-spacing: 1px;
+    margin-top: 4px;
+}
+.card-galactica {
+    border-color: rgba(0, 210, 255, 0.35);
+    box-shadow: 0 10px 30px rgba(0, 210, 255, 0.12);
+}
+.card-galactica:hover {
+    transform: translateY(-8px);
+    border-color: #00e5ff;
+    box-shadow: 0 18px 45px rgba(0, 229, 255, 0.35);
+}
+.btn-galactica {
+    background: linear-gradient(135deg, #00d2ff 0%, #0055ff 100%);
+    color: #ffffff;
+    font-weight: 900;
+    box-shadow: 0 4px 15px rgba(0, 210, 255, 0.4);
 }

@@ -1,4 +1,4 @@
-import './style.css'
+﻿import './style.css'
 import planck from 'planck-js'
 
 const Vec2 = planck.Vec2;
@@ -4943,6 +4943,22 @@ const initArcadeHubNavigation = () => {
     });
 
 
+        document.getElementById('hub-btn-play-galactica')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDisplayMessage("🚀 A LANÇAR CAÇA VIPER DA GALACTICA...", "#00d2ff", 2500);
+        sounds.playScoreMilestone();
+        setTimeout(() => {
+            window.location.href = window.location.origin.includes('localhost')
+                ? 'http://localhost:8088'
+                : 'https://galactica.testeweb.site';
+        }, 1200);
+    });
+
+    document.getElementById('hub-card-galactica')?.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).tagName !== 'BUTTON') {
+            document.getElementById('hub-btn-play-galactica')?.click();
+        }
+    });
     document.getElementById('hub-btn-scroll-top')?.addEventListener('click', (e) => {
         e.stopPropagation();
         hubScreen?.scrollTo({ top: 0, behavior: 'smooth' });
