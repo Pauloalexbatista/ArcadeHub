@@ -4927,6 +4927,21 @@ const initArcadeHubNavigation = () => {
         }
     });
 
+    document.getElementById('hub-btn-play-naval')?.addEventListener('click', (e) => {
+        e.stopPropagation();
+        showDisplayMessage("⚓ A PREPARAR FROTAS NAVAIS...", "#00d2ff", 2500);
+        sounds.playScoreMilestone();
+        setTimeout(() => {
+            window.location.href = 'https://naval.testeweb.site';
+        }, 1200);
+    });
+
+    document.getElementById('hub-card-naval')?.addEventListener('click', (e) => {
+        if ((e.target as HTMLElement).tagName !== 'BUTTON') {
+            document.getElementById('hub-btn-play-naval')?.click();
+        }
+    });
+
 
     document.getElementById('hub-btn-scroll-top')?.addEventListener('click', (e) => {
         e.stopPropagation();
